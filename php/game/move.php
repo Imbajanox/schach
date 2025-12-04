@@ -46,7 +46,9 @@ $moveData = [
     'promotion' => $input['promotion'] ?? null,
     'notation' => $input['notation'],
     'fen' => $input['fen'],
-    'time_spent' => $input['time_spent'] ?? null
+    'time_spent' => $input['time_spent'] ?? null,
+    'white_time_remaining' => $input['white_time_remaining'] ?? null,
+    'black_time_remaining' => $input['black_time_remaining'] ?? null
 ];
 
 $gameManager = new Game();

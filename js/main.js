@@ -173,11 +173,15 @@ async function startNewGame() {
         gameType = 'pvp_online';
     }
 
+    // Default time control is 10 minutes (600 seconds)
+    const defaultTimeControl = 600;
+    
     // Create game on server
     const createResult = await gameAPI.createGame({
         mode: gameType,
         playerColor: playerColor,
-        difficulty: difficulty
+        difficulty: difficulty,
+        timeControl: defaultTimeControl
     });
     
     if (!createResult.success) {
@@ -203,7 +207,9 @@ async function startNewGame() {
     ui.setGameControlsEnabled(true);
     
     // Reset and start the timer (White moves first)
-    chessTimer.reset();
+    // Use server-returned time if available, otherwise use default
+    const initialTime = createResult.time_control || defaultTimeControl;
+    chessTimer.reset(initialTime);
     chessTimer.start(COLORS.WHITE);
 
     selectedSquare = null;
@@ -354,8 +360,20 @@ function handleMove(move) {
     // Update undo/redo buttons
     updateUndoRedoButtons();
     
-    // Save move to server
-    gameAPI.saveMove(move).catch(err => {
+    // Get time information from the timer
+    const remainingTimes = chessTimer.getRemainingTimes();
+    const timeSpent = chessTimer.getLastMoveTimeSpent();
+    
+    // Add time data to the move record for saving
+    const moveWithTime = {
+        ...move,
+        timeSpent: timeSpent,
+        whiteTimeRemaining: remainingTimes.white,
+        blackTimeRemaining: remainingTimes.black
+    };
+    
+    // Save move to server with time information
+    gameAPI.saveMove(moveWithTime).catch(err => {
         console.warn('Failed to save move to server:', err);
     });
 

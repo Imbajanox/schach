@@ -23,6 +23,10 @@ class ChessTimer {
         // Is the timer running?
         this.isRunning = false;
         
+        // Track time spent on current move (for database storage)
+        this.moveStartTime = null;
+        this.lastMoveTimeSpent = 0;
+        
         // Callbacks
         this.onTick = null;       // Called every second with (color, timeRemaining)
         this.onTimeout = null;    // Called when a player runs out of time
@@ -44,6 +48,8 @@ class ChessTimer {
         };
         
         this.activeColor = null;
+        this.moveStartTime = null;
+        this.lastMoveTimeSpent = 0;
         
         // Trigger initial display update
         if (this.onTick) {
@@ -56,9 +62,15 @@ class ChessTimer {
      * Start the timer for a specific player
      */
     start(color) {
+        // Calculate time spent on the previous move if we're switching players
+        if (this.activeColor && this.activeColor !== color && this.moveStartTime) {
+            this.lastMoveTimeSpent = Math.floor((Date.now() - this.moveStartTime) / 1000);
+        }
+        
         this.stop();
         this.activeColor = color;
         this.isRunning = true;
+        this.moveStartTime = Date.now();
         
         this.intervalId = setInterval(() => {
             this.tick();
@@ -145,6 +157,37 @@ class ChessTimer {
     resume() {
         if (this.activeColor && !this.isRunning) {
             this.start(this.activeColor);
+        }
+    }
+    
+    /**
+     * Get the time spent on the last completed move
+     */
+    getLastMoveTimeSpent() {
+        return this.lastMoveTimeSpent;
+    }
+    
+    /**
+     * Get remaining times for both players (for saving to database)
+     */
+    getRemainingTimes() {
+        return {
+            white: this.time[COLORS.WHITE],
+            black: this.time[COLORS.BLACK]
+        };
+    }
+    
+    /**
+     * Set remaining times for both players (for loading from database)
+     */
+    setRemainingTimes(whiteTime, blackTime) {
+        this.time[COLORS.WHITE] = whiteTime;
+        this.time[COLORS.BLACK] = blackTime;
+        
+        // Update UI
+        if (this.onTick) {
+            this.onTick(COLORS.WHITE, whiteTime);
+            this.onTick(COLORS.BLACK, blackTime);
         }
     }
 }

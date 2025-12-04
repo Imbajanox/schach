@@ -25,10 +25,15 @@ class Game {
         $timeControl = $options['time_control'] ?? null;
         $increment = $options['increment'] ?? 0;
         
+        // Set initial remaining times (same as time_control, or null for unlimited)
+        $whiteTimeRemaining = $timeControl;
+        $blackTimeRemaining = $timeControl;
+        
         $sql = "INSERT INTO games (
             white_player_id, black_player_id, game_type, ai_difficulty,
-            time_control, increment, status, started_at, fen_initial, fen_current
-        ) VALUES (?, ?, ?, ?, ?, ?, 'active', NOW(), ?, ?)";
+            time_control, increment, status, started_at, fen_initial, fen_current,
+            white_time_remaining, black_time_remaining
+        ) VALUES (?, ?, ?, ?, ?, ?, 'active', NOW(), ?, ?, ?, ?)";
         
         $initialFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
         
@@ -40,7 +45,9 @@ class Game {
             $timeControl,
             $increment,
             $initialFen,
-            $initialFen
+            $initialFen,
+            $whiteTimeRemaining,
+            $blackTimeRemaining
         ]);
         
         // Add system message
@@ -48,7 +55,10 @@ class Game {
         
         return [
             'success' => true,
-            'game_id' => $gameId
+            'game_id' => $gameId,
+            'time_control' => $timeControl,
+            'white_time_remaining' => $whiteTimeRemaining,
+            'black_time_remaining' => $blackTimeRemaining
         ];
     }
     
@@ -106,15 +116,31 @@ class Game {
             $moveData['time_spent'] ?? null
         ]);
         
-        // Update game's current FEN and move count
-        $updateSql = "UPDATE games SET 
-                      fen_current = ?,
-                      move_count = move_count + 1,
-                      current_turn = ?
-                      WHERE id = ?";
-        
+        // Update game's current FEN, move count, and remaining times
         $nextTurn = $moveData['player_color'] === 'white' ? 'black' : 'white';
-        $this->db->update($updateSql, [$moveData['fen'], $nextTurn, $gameId]);
+        
+        // Build update query with optional time fields
+        $updateFields = [
+            'fen_current = ?',
+            'move_count = move_count + 1',
+            'current_turn = ?'
+        ];
+        $updateParams = [$moveData['fen'], $nextTurn];
+        
+        // Add time remaining fields if provided
+        if (isset($moveData['white_time_remaining'])) {
+            $updateFields[] = 'white_time_remaining = ?';
+            $updateParams[] = $moveData['white_time_remaining'];
+        }
+        if (isset($moveData['black_time_remaining'])) {
+            $updateFields[] = 'black_time_remaining = ?';
+            $updateParams[] = $moveData['black_time_remaining'];
+        }
+        
+        $updateParams[] = $gameId;
+        $updateSql = "UPDATE games SET " . implode(', ', $updateFields) . " WHERE id = ?";
+        
+        $this->db->update($updateSql, $updateParams);
         
         return [
             'success' => true,
