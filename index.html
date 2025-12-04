@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Schach - A full-featured web-based chess game">
+    <title>Schach - Chess Game</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/board.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- get font awesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">♔</span>
+                    <h1>Schach</h1>
+                </div>
+                <nav class="nav">
+                    <button class="nav-btn active" data-view="play">Play</button>
+                    <button class="nav-btn" data-view="learn">Learn</button>
+                    <button class="nav-btn" data-view="puzzles">Puzzles</button>
+                </nav>
+                <div class="user-menu" id="userMenu">
+                    <!-- Guest state (default) -->
+                    <div class="auth-buttons" id="authButtons">
+                        <button class="btn btn-outline" id="loginBtn">Login</button>
+                        <button class="btn btn-primary" id="registerBtn">Register</button>
+                    </div>
+                    <!-- Logged in state (hidden by default) -->
+                    <div class="user-info" id="userInfo" style="display: none;">
+                        <div class="user-avatar" id="userAvatar">👤</div>
+                        <div class="user-details">
+                            <span class="username" id="headerUsername">Username</span>
+                            <span class="user-rating" id="headerRating">ELO: 1200</span>
+                        </div>
+                        <div class="dropdown" id="userDropdown">
+                            <button class="dropdown-btn" id="userDropdownBtn">▼</button>
+                            <div class="dropdown-menu" id="userDropdownMenu">
+                                <a href="#" class="dropdown-item" id="profileBtn">
+                                    <span class="dropdown-icon">👤</span> Profile
+                                </a>
+                                <a href="#" class="dropdown-item" id="settingsBtn">
+                                    <span class="dropdown-icon">⚙️</span> Settings
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item" id="logoutBtn">
+                                    <span class="dropdown-icon">🚪</span> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Game Selection Panel -->
+            <aside class="sidebar left-sidebar">
+                <div class="panel">
+                    <h3>New Game</h3>
+                    <div class="game-options">
+                        <button class="option-btn active" id="vsAiBtn">
+                            <span class="option-icon">🤖</span>
+                            <span class="option-text">vs Computer</span>
+                        </button>
+                        <button class="option-btn" id="vsPlayerLocalBtn">
+                            <span class="option-icon">👥</span>
+                            <span class="option-text">Local 2P</span>
+                        </button>
+                        <button class="option-btn" id="vsPlayerOnlineBtn">
+                            <span class="option-icon">🌐</span>
+                            <span class="option-text">Online</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel" id="aiOptionsPanel">
+                    <h3>AI Difficulty</h3>
+                    <div class="difficulty-options">
+                        <label class="radio-option">
+                            <input type="radio" name="difficulty" value="easy" checked>
+                            <span class="radio-label">Easy</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="difficulty" value="medium">
+                            <span class="radio-label">Medium</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="difficulty" value="hard">
+                            <span class="radio-label">Hard</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>Play As</h3>
+                    <div class="color-selection">
+                        <button class="color-btn active" data-color="white">
+                            <span class="piece-white">♔</span> White
+                        </button>
+                        <button class="color-btn" data-color="random">
+                            <span>🎲</span> Random
+                        </button>
+                        <button class="color-btn" data-color="black">
+                            <span class="piece-black">♚</span> Black
+                        </button>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-large" id="startGameBtn">Start Game</button>
+            </aside>
+
+            <!-- Chess Board Area -->
+            <section class="game-area">
+                <div class="player-info top">
+                    <div class="player-avatar" id="opponentAvatar">🤖</div>
+                    <div class="player-details">
+                        <span class="player-name" id="opponentName">Computer</span>
+                        <span class="player-rating" id="opponentRating">Level: Easy</span>
+                    </div>
+                    <div class="ai-thinking" id="aiThinking" style="display: none;">
+                        <div class="thinking-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="thinking-text">Thinking...</span>
+                    </div>
+                    <div class="player-timer" id="blackTimer">10:00</div>
+                </div>
+
+                <div class="board-wrapper">
+                    <div class="board-container">
+                        <!-- Chess Board -->
+                        <div class="chessboard" id="chessboard">
+                            <!-- Board squares will be generated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="player-info bottom">
+                    <div class="player-avatar">👤</div>
+                    <div class="player-details">
+                        <span class="player-name">You</span>
+                        <span class="player-rating">Guest</span>
+                    </div>
+                    <div class="player-timer" id="whiteTimer">10:00</div>
+                </div>
+
+                <!-- Game Controls -->
+                <div class="game-controls">
+                    <button class="control-btn" id="flipBoardBtn" title="Flip Board">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                    <button class="control-btn" id="undoBtn" title="Undo Move" disabled>
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                    <button class="control-btn" id="redoBtn" title="Redo Move" disabled>
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button class="control-btn" id="hintBtn" title="Get Hint" disabled>
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </button>
+                    <button class="control-btn" id="resignBtn" title="Resign" disabled>
+                        <i class="fa-solid fa-flag"></i>
+                    </button>
+                    <button class="control-btn" id="drawBtn" title="Offer Draw" disabled>
+                        <i class="fa-solid fa-handshake"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Move History & Info Panel -->
+            <aside class="sidebar right-sidebar">
+                <div class="panel">
+                    <h3>Game Status</h3>
+                    <div class="game-status" id="gameStatus">
+                        <p>Click "Start Game" to begin</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>Move History</h3>
+                    <div class="move-history" id="moveHistory">
+                        <div class="move-list">
+                            <!-- Moves will be added here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>Captured Pieces</h3>
+                    <div class="captured-pieces">
+                        <div class="captured-white" id="capturedWhite"></div>
+                        <div class="captured-black" id="capturedBlack"></div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 Schach Chess Game. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Pawn Promotion Modal -->
+    <div class="modal" id="promotionModal">
+        <div class="modal-content promotion-modal">
+            <h3>Choose Promotion</h3>
+            <div class="promotion-options" id="promotionOptions">
+                <!-- Options will be set by JavaScript based on color -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="modal" id="gameOverModal">
+        <div class="modal-content">
+            <h2 id="gameOverTitle">Game Over</h2>
+            <p id="gameOverMessage"></p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="newGameBtn">New Game</button>
+                <button class="btn btn-outline" id="reviewGameBtn">Review Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Draw Offer Modal -->
+    <div class="modal" id="drawOfferModal">
+        <div class="modal-content">
+            <h2>Draw Offered</h2>
+            <p id="drawOfferMessage">Your opponent has offered a draw. Do you accept?</p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="acceptDrawBtn">Accept Draw</button>
+                <button class="btn btn-outline" id="declineDrawBtn">Decline</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content auth-modal">
+            <button class="modal-close" id="loginModalClose">&times;</button>
+            <h2>Login to Schach</h2>
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginIdentifier">Username or Email</label>
+                    <input type="text" id="loginIdentifier" name="identifier" required 
+                           placeholder="Enter username or email">
+                    <span class="error-message" id="loginIdentifierError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" required 
+                           placeholder="Enter password">
+                    <span class="error-message" id="loginPasswordError"></span>
+                </div>
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rememberMe" name="remember_me">
+                        <span>Remember me</span>
+                    </label>
+                </div>
+                <span class="error-message general-error" id="loginGeneralError"></span>
+                <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">
+                    Login
+                </button>
+            </form>
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="#" id="switchToRegister">Register here</a></p>
+                <p><a href="#" id="forgotPasswordLink">Forgot password?</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content auth-modal">
+            <button class="modal-close" id="registerModalClose">&times;</button>
+            <h2>Create Account</h2>
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerUsername">Username</label>
+                    <input type="text" id="registerUsername" name="username" required 
+                           placeholder="Choose a username" minlength="3" maxlength="20">
+                    <span class="error-message" id="registerUsernameError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" name="email" required 
+                           placeholder="Enter your email">
+                    <span class="error-message" id="registerEmailError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" name="password" required 
+                           placeholder="Create a password" minlength="8">
+                    <span class="error-message" id="registerPasswordError"></span>
+                    <div class="password-requirements">
+                        <small>Must be at least 8 characters with uppercase, lowercase, and a number</small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="registerConfirmPassword">Confirm Password</label>
+                    <input type="password" id="registerConfirmPassword" name="confirm_password" required 
+                           placeholder="Confirm your password">
+                    <span class="error-message" id="registerConfirmPasswordError"></span>
+                </div>
+                <span class="error-message general-error" id="registerGeneralError"></span>
+                <button type="submit" class="btn btn-primary btn-block" id="registerSubmitBtn">
+                    Create Account
+                </button>
+            </form>
+            <div class="auth-footer">
+                <p>Already have an account? <a href="#" id="switchToLogin">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content profile-modal">
+            <button class="modal-close" id="profileModalClose">&times;</button>
+            <h2>My Profile</h2>
+            <div class="profile-content">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profileAvatar">👤</div>
+                    <div class="profile-info">
+                        <h3 id="profileUsername">Username</h3>
+                        <p class="profile-rating">ELO: <span id="profileElo">1200</span></p>
+                    </div>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="profileGamesPlayed">0</span>
+                        <span class="stat-label">Games Played</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="profileWins">0</span>
+                        <span class="stat-label">Wins</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="profileLosses">0</span>
+                        <span class="stat-label">Losses</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="profileDraws">0</span>
+                        <span class="stat-label">Draws</span>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn btn-outline" id="editProfileBtn">Edit Profile</button>
+                    <button class="btn btn-outline" id="changePasswordBtn">Change Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content auth-modal">
+            <button class="modal-close" id="editProfileModalClose">&times;</button>
+            <h2>Edit Profile</h2>
+            <form id="editProfileForm" class="auth-form">
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" name="email" 
+                           placeholder="Enter new email">
+                    <span class="error-message" id="editEmailError"></span>
+                </div>
+                <span class="error-message general-error" id="editProfileGeneralError"></span>
+                <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal" id="changePasswordModal">
+        <div class="modal-content auth-modal">
+            <button class="modal-close" id="changePasswordModalClose">&times;</button>
+            <h2>Change Password</h2>
+            <form id="changePasswordForm" class="auth-form">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" name="current_password" required 
+                           placeholder="Enter current password">
+                    <span class="error-message" id="currentPasswordError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" name="new_password" required 
+                           placeholder="Enter new password" minlength="8">
+                    <span class="error-message" id="newPasswordError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="confirmNewPassword">Confirm New Password</label>
+                    <input type="password" id="confirmNewPassword" name="confirm_password" required 
+                           placeholder="Confirm new password">
+                    <span class="error-message" id="confirmNewPasswordError"></span>
+                </div>
+                <span class="error-message general-error" id="changePasswordGeneralError"></span>
+                <button type="submit" class="btn btn-primary btn-block">Change Password</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/constants.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/pieces.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/gameApi.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

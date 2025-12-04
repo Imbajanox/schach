@@ -1,0 +1,418 @@
+/* ===========================================
+   Schach Chess Game - Chessboard Styles
+   =========================================== */
+
+/* Board Wrapper */
+.board-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.board-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* Coordinates */
+.coordinates {
+    position: absolute;
+    display: flex;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    user-select: none;
+}
+
+.coordinates-files {
+    bottom: -20px;
+    left: 0;
+    right: 0;
+    justify-content: space-around;
+    padding: 0 24px;
+}
+
+.coordinates-ranks {
+    left: -20px;
+    top: 0;
+    bottom: 0;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0;
+}
+
+.coordinates span {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.coordinates-files span {
+    width: calc(100% / 8);
+}
+
+.coordinates-ranks span {
+    height: calc(100% / 8);
+}
+
+/* Chessboard */
+.chessboard {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: 800px;
+    height: 800px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+/* Board flipped */
+.chessboard.flipped {
+    transform: rotate(180deg);
+}
+
+.chessboard.flipped .square {
+    transform: rotate(180deg);
+}
+
+/* Square */
+.square {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color var(--transition-fast);
+}
+
+/* Light and dark squares */
+.square.light {
+    background-color: var(--board-light);
+}
+
+.square.dark {
+    background-color: var(--board-dark);
+}
+
+/* Square states */
+.square.selected {
+    background-color: var(--board-selected) !important;
+}
+
+.square.last-move {
+    background-color: var(--board-last-move) !important;
+}
+
+.square.valid-move::after {
+    content: '';
+    position: absolute;
+    width: 30%;
+    height: 30%;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
+}
+
+.square.capture-move::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 5px solid rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.square.check {
+    background: radial-gradient(ellipse at center, 
+        rgba(255, 0, 0, 0.8) 0%, 
+        rgba(255, 0, 0, 0.4) 40%, 
+        rgba(255, 0, 0, 0) 70%) !important;
+}
+
+.square.hover:not(.selected) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Coordinate labels on squares (alternative style) */
+.square .coord-file,
+.square .coord-rank {
+    position: absolute;
+    font-size: 1.25rem;
+    font-weight: 700;
+    opacity: 0.7;
+}
+
+.square .coord-file {
+    bottom: 2px;
+    right: 4px;
+}
+
+.square .coord-rank {
+    top: 2px;
+    left: 4px;
+}
+
+.square.light .coord-file,
+.square.light .coord-rank {
+    color: var(--board-dark);
+}
+
+.square.dark .coord-file,
+.square.dark .coord-rank {
+    color: var(--board-light);
+}
+
+/* Chess Piece */
+.piece {
+    font-size: 4rem;
+    line-height: 1;
+    cursor: grab;
+    transition: transform var(--transition-fast);
+    z-index: 10;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.piece:active {
+    cursor: grabbing;
+}
+
+.piece.dragging {
+    opacity: 0.8;
+    transform: scale(1.1);
+    z-index: 100;
+}
+
+/* Piece colors using text-shadow for 3D effect */
+.piece.white {
+    color: #ffffff;
+}
+
+.piece.black {
+    color: #1a1a1a;}
+
+/* Ghost piece (during drag) */
+.piece-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    font-size: 3.5rem;
+    transform: translate(-50%, -50%);
+    opacity: 0.9;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+/* Piece images alternative (if using images instead of Unicode) */
+.piece-img {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/* Animations */
+@keyframes pieceMove {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.piece.moving {
+    animation: pieceMove 0.2s ease-out;
+}
+
+@keyframes capture {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0);
+    }
+    100% {
+        transform: scale(0);
+    }
+}
+
+.piece.captured {
+    animation: capture 0.2s ease-out forwards;
+}
+
+@keyframes checkPulse {
+    0%, 100% {
+        box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.6);
+    }
+    50% {
+        box-shadow: inset 0 0 40px rgba(255, 0, 0, 0.8);
+    }
+}
+
+.square.check {
+    animation: checkPulse 1s ease-in-out infinite;
+}
+
+/* Premove highlight */
+.square.premove {
+    background-color: rgba(100, 150, 200, 0.5) !important;
+}
+
+/* Responsive board sizing */
+@media (max-width: 600px) {
+    .chessboard {
+        width: calc(100vw - 32px);
+        height: calc(100vw - 32px);
+        max-width: 400px;
+        max-height: 400px;
+    }
+    
+    .square {
+        width: calc((100vw - 32px) / 8);
+        height: calc((100vw - 32px) / 8);
+        max-width: 50px;
+        max-height: 50px;
+    }
+    
+    .piece {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .chessboard {
+        width: calc(100vw - 16px);
+        height: calc(100vw - 16px);
+    }
+    
+    .square {
+        width: calc((100vw - 16px) / 8);
+        height: calc((100vw - 16px) / 8);
+    }
+    
+    .piece {
+        font-size: 2rem;
+    }
+    
+    .coordinates {
+        font-size: 0.625rem;
+    }
+    
+    .coordinates-files {
+        bottom: -16px;
+    }
+    
+    .coordinates-ranks {
+        left: -16px;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .square.light {
+        background-color: #ffffff;
+    }
+    
+    .square.dark {
+        background-color: #4a4a4a;
+    }
+    
+    .piece.white {
+        color: #ffffff;
+        -webkit-text-stroke: 1px #000000;
+    }
+    
+    .piece.black {
+        color: #000000;
+        -webkit-text-stroke: 1px #ffffff;
+    }
+}
+
+/* ===========================================
+   AI Thinking Indicator
+   =========================================== */
+
+.ai-thinking {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(118, 150, 86, 0.2);
+    border-radius: 20px;
+    margin-left: auto;
+}
+
+.thinking-dots {
+    display: flex;
+    gap: 3px;
+}
+
+.thinking-dots span {
+    width: 6px;
+    height: 6px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    animation: thinkingDot 1.4s ease-in-out infinite;
+}
+
+.thinking-dots span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.thinking-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.thinking-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes thinkingDot {
+    0%, 80%, 100% {
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.thinking-text {
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Hint highlight */
+.square.hint-from {
+    box-shadow: inset 0 0 0 4px rgba(255, 215, 0, 0.8);
+}
+
+.square.hint-to {
+    box-shadow: inset 0 0 0 4px rgba(255, 215, 0, 0.8);
+    background-color: rgba(255, 215, 0, 0.3) !important;
+}
+
+@keyframes hintPulse {
+    0%, 100% {
+        box-shadow: inset 0 0 0 4px rgba(255, 215, 0, 0.6);
+    }
+    50% {
+        box-shadow: inset 0 0 0 6px rgba(255, 215, 0, 1);
+    }
+}
+
+.square.hint-from,
+.square.hint-to {
+    animation: hintPulse 1s ease-in-out infinite;
+}
