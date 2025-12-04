@@ -208,8 +208,13 @@ class UI {
                 message = 'The game is a draw by stalemate.';
                 break;
             case GAME_STATES.RESIGNED:
-                title = 'Resignation';
-                message = `${result.winner === COLORS.WHITE ? 'White' : 'Black'} wins by resignation.`;
+                if (result.reason === 'timeout') {
+                    title = 'Time Out!';
+                    message = `${result.winner === COLORS.WHITE ? 'White' : 'Black'} wins on time.`;
+                } else {
+                    title = 'Resignation';
+                    message = `${result.winner === COLORS.WHITE ? 'White' : 'Black'} wins by resignation.`;
+                }
                 break;
             case GAME_STATES.DRAW:
                 title = 'Draw!';

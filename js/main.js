@@ -8,6 +8,9 @@ let board = null;
 let game = null;
 let ui = null;
 
+// Timer instance
+chessTimer = new ChessTimer();
+
 // State
 let selectedSquare = null;
 let pendingPromotion = null;
@@ -31,6 +34,9 @@ function init() {
     game.onGameOver = handleGameOver;
     game.onCheck = handleCheck;
     game.onTurnChange = handleTurnChange;
+    
+    // Setup timer callbacks
+    setupTimerCallbacks();
 
     // Setup UI event listeners
     setupEventListeners();
@@ -108,6 +114,34 @@ function setupAICallbacks() {
 }
 
 /**
+ * Setup timer callbacks
+ */
+function setupTimerCallbacks() {
+    // Update UI when timer ticks
+    chessTimer.onTick = (color, seconds) => {
+        ui.updateTimer(color, seconds);
+    };
+    
+    // Handle timeout (player runs out of time)
+    chessTimer.onTimeout = (color) => {
+        // The player who ran out of time loses
+        const winner = color === COLORS.WHITE ? COLORS.BLACK : COLORS.WHITE;
+        
+        // Stop the game
+        game.gameState = GAME_STATES.RESIGNED;
+        
+        // Trigger game over
+        if (game.onGameOver) {
+            game.onGameOver({
+                state: GAME_STATES.RESIGNED,
+                winner: winner,
+                reason: 'timeout'
+            });
+        }
+    };
+}
+
+/**
  * Set game mode
  */
 function setGameMode(mode) {
@@ -167,6 +201,10 @@ async function startNewGame() {
     ui.updateCapturedPieces({ white: [], black: [] });
     ui.updateTurnIndicator(COLORS.WHITE);
     ui.setGameControlsEnabled(true);
+    
+    // Reset and start the timer (White moves first)
+    chessTimer.reset();
+    chessTimer.start(COLORS.WHITE);
 
     selectedSquare = null;
 
@@ -332,6 +370,12 @@ function handleMove(move) {
  */
 function handleTurnChange(turn) {
     ui.updateTurnIndicator(turn);
+    
+    // Switch the timer to the new player's turn
+    // Only switch if the timer has been started (game is in progress)
+    if (chessTimer.activeColor) {
+        chessTimer.start(turn);
+    }
 }
 
 /**
@@ -345,6 +389,9 @@ function handleCheck(color) {
  * Handle game over
  */
 async function handleGameOver(result) {
+    // Stop the timer
+    chessTimer.stop();
+    
     ui.setGameControlsEnabled(false);
     ui.showGameOverModal(result);
 
@@ -388,7 +435,11 @@ async function handleGameOver(result) {
             ui.updateStatus(statusMessage, 'draw');
             break;
         case GAME_STATES.RESIGNED:
-            statusMessage = `${result.winner === COLORS.WHITE ? 'White' : 'Black'} wins by resignation!`;
+            if (result.reason === 'timeout') {
+                statusMessage = `${result.winner === COLORS.WHITE ? 'White' : 'Black'} wins on time!`;
+            } else {
+                statusMessage = `${result.winner === COLORS.WHITE ? 'White' : 'Black'} wins by resignation!`;
+            }
             ui.updateStatus(statusMessage, 'resigned');
             break;
     }
