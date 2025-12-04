@@ -199,7 +199,9 @@ class GameAPI {
                     promotion: moveRecord.promotion || null,
                     notation: moveRecord.notation,
                     fen: moveRecord.fen,
-                    time_spent: moveRecord.timeSpent || null
+                    time_spent: moveRecord.timeSpent || null,
+                    white_time_remaining: moveRecord.whiteTimeRemaining || null,
+                    black_time_remaining: moveRecord.blackTimeRemaining || null
                 })
             });
 
