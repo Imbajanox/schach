@@ -44,7 +44,7 @@
                         <div class="dropdown" id="userDropdown">
                             <button class="dropdown-btn" id="userDropdownBtn">▼</button>
                             <div class="dropdown-menu" id="userDropdownMenu">
-                                <a href="#" class="dropdown-item" id="profileBtn">
+                                <a href="profile.html" class="dropdown-item" id="profileBtn">
                                     <span class="dropdown-icon">👤</span> Profile
                                 </a>
                                 <a href="#" class="dropdown-item" id="settingsBtn">
@@ -214,6 +214,7 @@
     <!-- Pawn Promotion Modal -->
     <div class="modal" id="promotionModal">
         <div class="modal-content promotion-modal">
+            <button class="modal-close" id="promotionModalClose">&times;</button>
             <h3>Choose Promotion</h3>
             <div class="promotion-options" id="promotionOptions">
                 <!-- Options will be set by JavaScript based on color -->
@@ -224,6 +225,7 @@
     <!-- Game Over Modal -->
     <div class="modal" id="gameOverModal">
         <div class="modal-content">
+            <button class="modal-close" id="gameOverModalClose">&times;</button>
             <h2 id="gameOverTitle">Game Over</h2>
             <p id="gameOverMessage"></p>
             <div class="modal-actions">
@@ -236,6 +238,7 @@
     <!-- Draw Offer Modal -->
     <div class="modal" id="drawOfferModal">
         <div class="modal-content">
+            <button class="modal-close" id="drawOfferModalClose">&times;</button>
             <h2>Draw Offered</h2>
             <p id="drawOfferMessage">Your opponent has offered a draw. Do you accept?</p>
             <div class="modal-actions">
@@ -321,45 +324,6 @@
             </form>
             <div class="auth-footer">
                 <p>Already have an account? <a href="#" id="switchToLogin">Login here</a></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Profile Modal -->
-    <div class="modal" id="profileModal">
-        <div class="modal-content profile-modal">
-            <button class="modal-close" id="profileModalClose">&times;</button>
-            <h2>My Profile</h2>
-            <div class="profile-content">
-                <div class="profile-header">
-                    <div class="profile-avatar" id="profileAvatar">👤</div>
-                    <div class="profile-info">
-                        <h3 id="profileUsername">Username</h3>
-                        <p class="profile-rating">ELO: <span id="profileElo">1200</span></p>
-                    </div>
-                </div>
-                <div class="profile-stats">
-                    <div class="stat-item">
-                        <span class="stat-value" id="profileGamesPlayed">0</span>
-                        <span class="stat-label">Games Played</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="profileWins">0</span>
-                        <span class="stat-label">Wins</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="profileLosses">0</span>
-                        <span class="stat-label">Losses</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="profileDraws">0</span>
-                        <span class="stat-label">Draws</span>
-                    </div>
-                </div>
-                <div class="profile-actions">
-                    <button class="btn btn-outline" id="editProfileBtn">Edit Profile</button>
-                    <button class="btn btn-outline" id="changePasswordBtn">Change Password</button>
-                </div>
             </div>
         </div>
     </div>
