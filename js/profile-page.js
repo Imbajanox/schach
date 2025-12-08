@@ -261,7 +261,7 @@ function showFormErrors(prefix, errors) {
             let fieldId = field;
             if (field === 'current_password') fieldId = 'currentPassword';
             else if (field === 'new_password') fieldId = 'newPassword';
-            else if (field === 'confirm_password') fieldId = 'ConfirmPassword';
+            else if (field === 'confirm_password') fieldId = 'confirmNewPassword';
             else fieldId = field.charAt(0).toUpperCase() + field.slice(1);
             
             const errorEl = document.getElementById(`${prefix}${fieldId}Error`);
