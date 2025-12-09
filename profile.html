@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Schach - User Profile">
+    <title>Profile - Schach Chess Game</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/board.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="logo-icon">♔</span>
+                        <h1>Schach</h1>
+                    </a>
+                </div>
+                <nav class="nav">
+                    <a href="index.html" class="nav-btn">Play</a>
+                    <button class="nav-btn" data-view="learn">Learn</button>
+                    <button class="nav-btn" data-view="puzzles">Puzzles</button>
+                </nav>
+                <div class="user-menu" id="userMenu">
+                    <!-- Guest state (default) -->
+                    <div class="auth-buttons" id="authButtons">
+                        <a href="index.html" class="btn btn-outline">Login</a>
+                        <a href="index.html" class="btn btn-primary">Register</a>
+                    </div>
+                    <!-- Logged in state (hidden by default) -->
+                    <div class="user-info" id="userInfo" style="display: none;">
+                        <div class="user-avatar" id="userAvatar">👤</div>
+                        <div class="user-details">
+                            <span class="username" id="headerUsername">Username</span>
+                            <span class="user-rating" id="headerRating">ELO: 1200</span>
+                        </div>
+                        <div class="dropdown" id="userDropdown">
+                            <button class="dropdown-btn" id="userDropdownBtn">▼</button>
+                            <div class="dropdown-menu" id="userDropdownMenu">
+                                <a href="profile.html" class="dropdown-item" id="profileBtn">
+                                    <span class="dropdown-icon">👤</span> Profile
+                                </a>
+                                <a href="#" class="dropdown-item" id="settingsBtn">
+                                    <span class="dropdown-icon">⚙️</span> Settings
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item" id="logoutBtn">
+                                    <span class="dropdown-icon">🚪</span> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content" style="flex-direction: column; padding: 2rem;">
+            <div class="profile-page-container">
+                <h2>My Profile</h2>
+                
+                <div class="profile-page-content">
+                    <!-- Profile Header -->
+                    <div class="profile-page-header">
+                        <div class="profile-avatar-large" id="profileAvatar">👤</div>
+                        <div class="profile-info-large">
+                            <h3 id="profileUsername">Username</h3>
+                            <p class="profile-rating-large">ELO: <span id="profileElo">1200</span></p>
+                            <p class="profile-email" id="profileEmail">email@example.com</p>
+                            <p class="profile-joined">Member since: <span id="profileJoinDate">January 1, 2024</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Profile Stats -->
+                    <div class="profile-stats-section">
+                        <h3>Statistics</h3>
+                        <div class="profile-stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">🎮</div>
+                                <span class="stat-value" id="profileGamesPlayed">0</span>
+                                <span class="stat-label">Games Played</span>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🏆</div>
+                                <span class="stat-value" id="profileWins">0</span>
+                                <span class="stat-label">Wins</span>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">❌</div>
+                                <span class="stat-value" id="profileLosses">0</span>
+                                <span class="stat-label">Losses</span>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🤝</div>
+                                <span class="stat-value" id="profileDraws">0</span>
+                                <span class="stat-label">Draws</span>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">📊</div>
+                                <span class="stat-value" id="profileWinRate">0%</span>
+                                <span class="stat-label">Win Rate</span>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⚡</div>
+                                <span class="stat-value" id="profileCurrentStreak">0</span>
+                                <span class="stat-label">Current Streak</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Actions -->
+                    <div class="profile-page-actions">
+                        <button class="btn btn-primary" id="editProfileBtn">
+                            <i class="fa-solid fa-pen"></i> Edit Profile
+                        </button>
+                        <button class="btn btn-outline" id="changePasswordBtn">
+                            <i class="fa-solid fa-key"></i> Change Password
+                        </button>
+                        <a href="index.html" class="btn btn-outline">
+                            <i class="fa-solid fa-chess"></i> Back to Game
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 Schach Chess Game. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content auth-modal">
+            <button class="modal-close" id="editProfileModalClose">&times;</button>
+            <h2>Edit Profile</h2>
+            <form id="editProfileForm" class="auth-form">
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" name="email" 
+                           placeholder="Enter new email">
+                    <span class="error-message" id="editEmailError"></span>
+                </div>
+                <span class="error-message general-error" id="editProfileGeneralError"></span>
+                <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal" id="changePasswordModal">
+        <div class="modal-content auth-modal">
+            <button class="modal-close" id="changePasswordModalClose">&times;</button>
+            <h2>Change Password</h2>
+            <form id="changePasswordForm" class="auth-form">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" name="current_password" required 
+                           placeholder="Enter current password">
+                    <span class="error-message" id="currentPasswordError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" name="new_password" required 
+                           placeholder="Enter new password" minlength="8">
+                    <span class="error-message" id="newPasswordError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="confirmNewPassword">Confirm New Password</label>
+                    <input type="password" id="confirmNewPassword" name="confirm_password" required 
+                           placeholder="Confirm new password">
+                    <span class="error-message" id="confirmNewPasswordError"></span>
+                </div>
+                <span class="error-message general-error" id="changePasswordGeneralError"></span>
+                <button type="submit" class="btn btn-primary btn-block">Change Password</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/constants.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/profile-page.js"></script>
+</body>
+</html>

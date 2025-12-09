@@ -833,9 +833,16 @@ function createReviewModal() {
     document.getElementById('reviewNext').addEventListener('click', () => reviewToPosition(reviewCurrentIndex + 1));
     document.getElementById('reviewLast').addEventListener('click', () => reviewToPosition(reviewPositions.length - 1));
     
-    // Close on overlay click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeReviewModal();
+    // Close on overlay click (with drag protection)
+    let reviewModalMouseDownTarget = null;
+    modal.addEventListener('mousedown', (e) => {
+        reviewModalMouseDownTarget = e.target;
+    });
+    modal.addEventListener('mouseup', (e) => {
+        if (reviewModalMouseDownTarget === modal && e.target === modal) {
+            closeReviewModal();
+        }
+        reviewModalMouseDownTarget = null;
     });
     
     // Keyboard navigation
@@ -1063,12 +1070,10 @@ function setupAuthEventListeners() {
     const loginBtn = document.getElementById('loginBtn');
     const registerBtn = document.getElementById('registerBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-    const profileBtn = document.getElementById('profileBtn');
     
     // Modal elements
     const loginModal = document.getElementById('loginModal');
     const registerModal = document.getElementById('registerModal');
-    const profileModal = document.getElementById('profileModal');
     const editProfileModal = document.getElementById('editProfileModal');
     const changePasswordModal = document.getElementById('changePasswordModal');
     
@@ -1080,12 +1085,6 @@ function setupAuthEventListeners() {
     
     // Logout button
     logoutBtn?.addEventListener('click', handleLogout);
-    
-    // Profile button
-    profileBtn?.addEventListener('click', () => {
-        hideDropdown();
-        showProfileModal();
-    });
     
     // User dropdown toggle
     const userDropdownBtn = document.getElementById('userDropdownBtn');
@@ -1102,9 +1101,11 @@ function setupAuthEventListeners() {
     // Modal close buttons
     document.getElementById('loginModalClose')?.addEventListener('click', () => hideModal('loginModal'));
     document.getElementById('registerModalClose')?.addEventListener('click', () => hideModal('registerModal'));
-    document.getElementById('profileModalClose')?.addEventListener('click', () => hideModal('profileModal'));
     document.getElementById('editProfileModalClose')?.addEventListener('click', () => hideModal('editProfileModal'));
     document.getElementById('changePasswordModalClose')?.addEventListener('click', () => hideModal('changePasswordModal'));
+    document.getElementById('promotionModalClose')?.addEventListener('click', () => ui.hidePromotionModal());
+    document.getElementById('gameOverModalClose')?.addEventListener('click', () => ui.hideGameOverModal());
+    document.getElementById('drawOfferModalClose')?.addEventListener('click', () => ui.hideDrawOfferModal());
     
     // Switch between login and register
     document.getElementById('switchToRegister')?.addEventListener('click', (e) => {
@@ -1125,18 +1126,6 @@ function setupAuthEventListeners() {
     // Register form submit
     document.getElementById('registerForm')?.addEventListener('submit', handleRegisterSubmit);
     
-    // Edit profile button
-    document.getElementById('editProfileBtn')?.addEventListener('click', () => {
-        hideModal('profileModal');
-        showModal('editProfileModal');
-    });
-    
-    // Change password button
-    document.getElementById('changePasswordBtn')?.addEventListener('click', () => {
-        hideModal('profileModal');
-        showModal('changePasswordModal');
-    });
-    
     // Edit profile form submit
     document.getElementById('editProfileForm')?.addEventListener('submit', handleEditProfileSubmit);
     
@@ -1144,13 +1133,26 @@ function setupAuthEventListeners() {
     document.getElementById('changePasswordForm')?.addEventListener('submit', handleChangePasswordSubmit);
     
     // Close modals when clicking outside
-    [loginModal, registerModal, profileModal, editProfileModal, changePasswordModal].forEach(modal => {
-        modal?.addEventListener('click', (e) => {
-            if (e.target === modal) {
+    // Track mousedown and mouseup to prevent closing on drag
+    const setupModalOutsideClick = (modal) => {
+        if (!modal) return;
+        
+        let mouseDownTarget = null;
+        
+        modal.addEventListener('mousedown', (e) => {
+            mouseDownTarget = e.target;
+        });
+        
+        modal.addEventListener('mouseup', (e) => {
+            // Only close if both mousedown and mouseup happened on the modal backdrop
+            if (mouseDownTarget === modal && e.target === modal) {
                 modal.classList.remove('active');
             }
+            mouseDownTarget = null;
         });
-    });
+    };
+    
+    [loginModal, registerModal, editProfileModal, changePasswordModal].forEach(setupModalOutsideClick);
     
     // Listen for auth state changes
     authManager.onAuthChange((event, user) => {
@@ -1281,30 +1283,6 @@ async function handleLogout() {
 }
 
 /**
- * Show profile modal
- */
-async function showProfileModal() {
-    const user = authManager.getUser();
-    if (!user) return;
-    
-    // Fetch full profile data
-    const result = await authManager.getProfile();
-    
-    if (result.success && result.user) {
-        const profile = result.user;
-        
-        document.getElementById('profileUsername').textContent = profile.username;
-        document.getElementById('profileElo').textContent = profile.elo_rating || 1200;
-        document.getElementById('profileGamesPlayed').textContent = profile.games_played || 0;
-        document.getElementById('profileWins').textContent = profile.games_won || 0;
-        document.getElementById('profileLosses').textContent = profile.games_lost || 0;
-        document.getElementById('profileDraws').textContent = profile.games_drawn || 0;
-    }
-    
-    showModal('profileModal');
-}
-
-/**
  * Handle edit profile submit
  */
 async function handleEditProfileSubmit(e) {
@@ -1321,7 +1299,7 @@ async function handleEditProfileSubmit(e) {
     
     if (result.success) {
         hideModal('editProfileModal');
-        showProfileModal();
+        alert('Profile updated successfully!');
     } else {
         showFormErrors('editProfile', result.errors);
     }
