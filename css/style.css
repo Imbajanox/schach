@@ -538,6 +538,7 @@ h3 { font-size: 1.125rem; }
 }
 
 .modal-content {
+    position: relative;
     background-color: var(--bg-secondary);
     border-radius: var(--radius-lg);
     padding: var(--spacing-xl);
