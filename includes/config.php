@@ -19,7 +19,7 @@ define('SESSION_LIFETIME', 86400 * 30); // 30 days
 
 // Email configuration
 define('EMAIL_ENABLED', true); // Set to false to completely disable emails
-define('EMAIL_DEV_MODE', true); // Set to false in production (logs to file instead of sending)
+define('EMAIL_DEV_MODE', true); // Set to false in production to send emails via SMTP instead of logging to file
 define('EMAIL_FROM_ADDRESS', 'noreply@schach.local');
 define('EMAIL_FROM_NAME', 'Schach Chess Game');
 

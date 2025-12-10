@@ -176,8 +176,9 @@ class EmailService {
             // Read server greeting
             $this->smtpRead($smtp);
             
-            // Send EHLO
-            $this->smtpWrite($smtp, 'EHLO ' . EMAIL_SMTP_HOST);
+            // Send EHLO with sanitized hostname
+            $hostname = preg_replace('/[^a-zA-Z0-9.-]/', '', EMAIL_SMTP_HOST);
+            $this->smtpWrite($smtp, 'EHLO ' . $hostname);
             $this->smtpRead($smtp);
             
             // Authenticate if credentials provided
@@ -256,7 +257,7 @@ class EmailService {
         $logDir = dirname($logFile);
         
         if (!is_dir($logDir)) {
-            mkdir($logDir, 0755, true);
+            mkdir($logDir, 0700, true); // Restrictive permissions for security
         }
         
         file_put_contents($logFile, $logMessage, FILE_APPEND);

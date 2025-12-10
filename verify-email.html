@@ -171,11 +171,17 @@
 
         function showSuccess(message, username) {
             const container = document.getElementById('verification-status');
+            
+            // Sanitize username before inserting
+            const sanitizedUsername = document.createElement('div');
+            sanitizedUsername.textContent = username;
+            const usernameHTML = username ? `<p class="message">Welcome, <strong>${sanitizedUsername.innerHTML}</strong>!</p>` : '';
+            
             container.innerHTML = `
                 <div class="verification-icon success">✓</div>
                 <h1>Email Verified!</h1>
-                <p class="message">${message}</p>
-                ${username ? `<p class="message">Welcome, <strong>${username}</strong>!</p>` : ''}
+                <p class="message">${escapeHtml(message)}</p>
+                ${usernameHTML}
                 <a href="index.html" class="btn success">Go to Login</a>
             `;
         }
@@ -185,7 +191,7 @@
             container.innerHTML = `
                 <div class="verification-icon error">✗</div>
                 <h1>Verification Failed</h1>
-                <p class="message">${message}</p>
+                <p class="message">${escapeHtml(message)}</p>
                 <a href="index.html" class="btn">Back to Home</a>
                 
                 <div class="resend-section">
@@ -197,6 +203,13 @@
                     <p id="resend-message" style="margin-top: 10px; font-size: 14px;"></p>
                 </div>
             `;
+        }
+        
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         async function resendVerification(event) {
