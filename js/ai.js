@@ -1041,7 +1041,18 @@ class ChessAI {
         const safeMoves = [];
         const opponentColor = Utils.oppositeColor(color);
         
+        // Add time limit check to prevent hanging
+        const filterStartTime = Date.now();
+        const maxFilterTime = 1000; // 1 second max for filtering
+        
         for (const move of moves) {
+            // Check if we're running out of time
+            if (Date.now() - filterStartTime > maxFilterTime) {
+                // If we've found some safe moves, return them
+                // Otherwise return all moves to avoid getting stuck
+                return safeMoves.length > 0 ? safeMoves : moves;
+            }
+            
             const result = Pieces.makeMove(position, move.from, move, gameState);
             const newPosition = result.position;
             
@@ -1088,16 +1099,12 @@ class ChessAI {
     
     /**
      * Check if a square is defended by the given color
+     * Uses efficient attack checking instead of generating all legal moves
      */
     isSquareDefended(position, square, color, gameState) {
-        // Get all moves that can reach this square
-        const moves = Pieces.getAllLegalMoves(position, color, gameState);
-        for (const move of moves) {
-            if (move.to === square) {
-                return true;
-            }
-        }
-        return false;
+        // Use the efficient isSquareAttacked method instead of getAllLegalMoves
+        // This avoids exponential complexity in filterSafeMoves
+        return Pieces.isSquareAttacked(position, square, color);
     }
     
     /**
