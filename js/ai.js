@@ -1103,13 +1103,22 @@ class ChessAI {
      * @param {Object} position - Current board position
      * @param {string} square - Square to check (e.g., 'e4')
      * @param {string} color - Color of defending pieces
-     * @param {Object} gameState - Game state (not needed for attack detection)
-     * @returns {boolean} True if square is defended by color
+     * @param {Object} gameState - Game state (unused - kept for API consistency)
+     * @returns {boolean} True if square is defended (can be attacked by) pieces of given color
+     * 
+     * Note: Uses Pieces.isSquareAttacked() which checks if pieces of the given color
+     * can attack the square. This is semantically correct for defense checking:
+     * "Can my pieces attack this square?" = "Is this square defended by my pieces?"
+     * 
+     * gameState is not needed because:
+     * - En passant only applies to pawn captures, not square control/defense
+     * - Castling doesn't affect whether a square is defended
+     * - The attack pattern is determined solely by piece positions
      */
     isSquareDefended(position, square, color, gameState) {
         // Use the efficient isSquareAttacked method instead of getAllLegalMoves
-        // This avoids exponential complexity in filterSafeMoves
-        // Note: gameState is not needed for basic attack detection (no en passant defense)
+        // This avoids exponential complexity that caused the hint button to hang
+        // Old: O(n²) generating all legal moves, New: O(1) checking attack patterns
         return Pieces.isSquareAttacked(position, square, color);
     }
     
