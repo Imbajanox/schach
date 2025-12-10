@@ -79,54 +79,133 @@
                         </div>
                     </div>
 
-                    <!-- Profile Stats -->
-                    <div class="profile-stats-section">
-                        <h3>Statistics</h3>
-                        <div class="profile-stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-icon"><i class="fa-solid fa-chess-board"></i></div>
-                                <span class="stat-value" id="profileGamesPlayed">0</span>
-                                <span class="stat-label">Games Played</span>
+                    <!-- Profile Tabs -->
+                    <div class="profile-tabs">
+                        <button class="profile-tab active" data-tab="overview">
+                            <i class="fa-solid fa-user"></i> Overview
+                        </button>
+                        <button class="profile-tab" data-tab="statistics">
+                            <i class="fa-solid fa-chart-bar"></i> Statistics
+                        </button>
+                        <button class="profile-tab" data-tab="graphs">
+                            <i class="fa-solid fa-chart-line"></i> Performance
+                        </button>
+                    </div>
+
+                    <!-- Tab Content: Overview -->
+                    <div class="profile-tab-content active" id="overviewTab">
+                        <!-- Profile Stats -->
+                        <div class="profile-stats-section">
+                            <h3>Quick Stats</h3>
+                            <div class="profile-stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-icon"><i class="fa-solid fa-chess-board"></i></div>
+                                    <span class="stat-value" id="profileGamesPlayed">0</span>
+                                    <span class="stat-label">Games Played</span>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon"><i class="fa-solid fa-trophy"></i></div>
+                                    <span class="stat-value" id="profileWins">0</span>
+                                    <span class="stat-label">Wins</span>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon"><i class="fa-solid fa-times"></i></div>
+                                    <span class="stat-value" id="profileLosses">0</span>
+                                    <span class="stat-label">Losses</span>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon"><i class="fa-solid fa-handshake"></i></div>
+                                    <span class="stat-value" id="profileDraws">0</span>
+                                    <span class="stat-label">Draws</span>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon"><i class="fa-solid fa-chart-column"></i></div>
+                                    <span class="stat-value" id="profileWinRate">0%</span>
+                                    <span class="stat-label">Win Rate</span>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon"><i class="fa-solid fa-bolt"></i></div>
+                                    <span class="stat-value" id="profileCurrentStreak">0</span>
+                                    <span class="stat-label">Current Streak</span>
+                                </div>
                             </div>
-                            <div class="stat-card">
-                                <div class="stat-icon"><i class="fa-solid fa-trophy"></i></div>
-                                <span class="stat-value" id="profileWins">0</span>
-                                <span class="stat-label">Wins</span>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon"><i class="fa-solid fa-times"></i></div>
-                                <span class="stat-value" id="profileLosses">0</span>
-                                <span class="stat-label">Losses</span>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon"><i class="fa-solid fa-handshake"></i></div>
-                                <span class="stat-value" id="profileDraws">0</span>
-                                <span class="stat-label">Draws</span>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon"><i class="fa-solid fa-chart-column"></i></div>
-                                <span class="stat-value" id="profileWinRate">0%</span>
-                                <span class="stat-label">Win Rate</span>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon"><i class="fa-solid fa-bolt"></i></div>
-                                <span class="stat-value" id="profileCurrentStreak">0</span>
-                                <span class="stat-label">Current Streak</span>
+                        </div>
+
+                        <!-- Profile Actions -->
+                        <div class="profile-page-actions">
+                            <button class="btn btn-primary" id="editProfileBtn">
+                                <i class="fa-solid fa-pen"></i> Edit Profile
+                            </button>
+                            <button class="btn btn-outline" id="changePasswordBtn">
+                                <i class="fa-solid fa-key"></i> Change Password
+                            </button>
+                            <a href="index.html" class="btn btn-outline">
+                                <i class="fa-solid fa-chess"></i> Back to Game
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content: Statistics -->
+                    <div class="profile-tab-content" id="statisticsTab">
+                        <div class="profile-stats-section">
+                            <h3>Detailed Statistics</h3>
+                            <div class="stats-details">
+                                <div class="stat-detail-row">
+                                    <span class="stat-detail-label">Total Games:</span>
+                                    <span class="stat-detail-value" id="statsGamesPlayed">0</span>
+                                </div>
+                                <div class="stat-detail-row">
+                                    <span class="stat-detail-label">Wins:</span>
+                                    <span class="stat-detail-value" id="statsWins">0</span>
+                                </div>
+                                <div class="stat-detail-row">
+                                    <span class="stat-detail-label">Losses:</span>
+                                    <span class="stat-detail-value" id="statsLosses">0</span>
+                                </div>
+                                <div class="stat-detail-row">
+                                    <span class="stat-detail-label">Draws:</span>
+                                    <span class="stat-detail-value" id="statsDraws">0</span>
+                                </div>
+                                <div class="stat-detail-row">
+                                    <span class="stat-detail-label">Win Rate:</span>
+                                    <span class="stat-detail-value" id="statsWinRate">0%</span>
+                                </div>
+                                <div class="stat-detail-row">
+                                    <span class="stat-detail-label">Current ELO Rating:</span>
+                                    <span class="stat-detail-value" id="statsElo">1200</span>
+                                </div>
+                                <div class="stat-detail-row">
+                                    <span class="stat-detail-label">Current Streak:</span>
+                                    <span class="stat-detail-value" id="statsStreak">0</span>
+                                </div>
+                                <div class="stat-detail-row">
+                                    <span class="stat-detail-label">Longest Win Streak:</span>
+                                    <span class="stat-detail-value" id="statsLongestStreak">0</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Profile Actions -->
-                    <div class="profile-page-actions">
-                        <button class="btn btn-primary" id="editProfileBtn">
-                            <i class="fa-solid fa-pen"></i> Edit Profile
-                        </button>
-                        <button class="btn btn-outline" id="changePasswordBtn">
-                            <i class="fa-solid fa-key"></i> Change Password
-                        </button>
-                        <a href="index.html" class="btn btn-outline">
-                            <i class="fa-solid fa-chess"></i> Back to Game
-                        </a>
+                    <!-- Tab Content: Graphs -->
+                    <div class="profile-tab-content" id="graphsTab">
+                        <div class="profile-stats-section">
+                            <h3>Win Rate Over Time</h3>
+                            <div class="chart-container">
+                                <canvas id="winRateChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="profile-stats-section">
+                            <h3>ELO Rating History</h3>
+                            <div class="chart-container">
+                                <canvas id="eloChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="no-data-message" id="noDataMessage" style="display: none;">
+                            <i class="fa-solid fa-chart-line" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                            <p>No game data available yet. Play some games to see your performance graphs!</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -187,6 +266,7 @@
     </div>
 
     <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="js/constants.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>

@@ -3,6 +3,10 @@
  * Schach - Chess Game
  */
 
+// Chart instances
+let winRateChart = null;
+let eloChart = null;
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', init);
 
@@ -56,6 +60,7 @@ async function loadProfileData() {
         const losses = profile.games_lost || 0;
         const draws = profile.games_drawn || 0;
         
+        // Update overview tab stats
         document.getElementById('profileGamesPlayed').textContent = gamesPlayed;
         document.getElementById('profileWins').textContent = wins;
         document.getElementById('profileLosses').textContent = losses;
@@ -66,7 +71,18 @@ async function loadProfileData() {
         document.getElementById('profileWinRate').textContent = winRate + '%';
         
         // Current streak (would need to be calculated from game history)
-        document.getElementById('profileCurrentStreak').textContent = profile.current_streak || 0;
+        const currentStreak = profile.current_win_streak || 0;
+        document.getElementById('profileCurrentStreak').textContent = currentStreak;
+        
+        // Update statistics tab (detailed view)
+        document.getElementById('statsGamesPlayed').textContent = gamesPlayed;
+        document.getElementById('statsWins').textContent = wins;
+        document.getElementById('statsLosses').textContent = losses;
+        document.getElementById('statsDraws').textContent = draws;
+        document.getElementById('statsWinRate').textContent = winRate + '%';
+        document.getElementById('statsElo').textContent = profile.elo_rating || 1200;
+        document.getElementById('statsStreak').textContent = currentStreak;
+        document.getElementById('statsLongestStreak').textContent = profile.longest_win_streak || 0;
     }
 }
 
@@ -132,6 +148,15 @@ function setupEventListeners() {
     
     setupModalOutsideClick(editProfileModal);
     setupModalOutsideClick(changePasswordModal);
+    
+    // Tab switching
+    const tabs = document.querySelectorAll('.profile-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.dataset.tab;
+            switchTab(tabName);
+        });
+    });
 }
 
 /**
@@ -290,4 +315,247 @@ function updateHeaderForLoggedInUser(user) {
     // Update header
     if (headerUsername) headerUsername.textContent = user.username;
     if (headerRating) headerRating.textContent = `ELO: ${user.elo_rating || 1200}`;
+}
+
+/**
+ * Switch between tabs
+ */
+function switchTab(tabName) {
+    // Update tab buttons
+    const tabs = document.querySelectorAll('.profile-tab');
+    tabs.forEach(tab => {
+        if (tab.dataset.tab === tabName) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+    
+    // Update tab content
+    const tabContents = document.querySelectorAll('.profile-tab-content');
+    tabContents.forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Show selected tab
+    const selectedTab = document.getElementById(`${tabName}Tab`);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+        
+        // Load graphs when graphs tab is opened
+        if (tabName === 'graphs' && !winRateChart && !eloChart) {
+            loadAndRenderGraphs();
+        }
+    }
+}
+
+/**
+ * Load and render performance graphs
+ */
+async function loadAndRenderGraphs() {
+    try {
+        const response = await fetch('/php/profile/stats-history.php');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const { winRate, eloHistory, totalGames } = result.data;
+            
+            // Show no data message if no games played
+            if (totalGames === 0) {
+                document.getElementById('noDataMessage').style.display = 'flex';
+                document.querySelectorAll('.chart-container').forEach(container => {
+                    container.style.display = 'none';
+                });
+                return;
+            }
+            
+            // Render win rate chart
+            renderWinRateChart(winRate);
+            
+            // Render ELO chart
+            renderEloChart(eloHistory);
+        }
+    } catch (error) {
+        console.error('Error loading graph data:', error);
+    }
+}
+
+/**
+ * Render win rate chart
+ */
+function renderWinRateChart(data) {
+    const ctx = document.getElementById('winRateChart');
+    if (!ctx) return;
+    
+    // Prepare data
+    const labels = data.map(d => {
+        const date = new Date(d.date);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    const winRates = data.map(d => d.winRate);
+    
+    // Destroy existing chart if it exists
+    if (winRateChart) {
+        winRateChart.destroy();
+    }
+    
+    // Create chart
+    winRateChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Win Rate (%)',
+                data: winRates,
+                borderColor: '#81b64c',
+                backgroundColor: 'rgba(129, 182, 76, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        color: '#bababa',
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            const index = context.dataIndex;
+                            const dataPoint = data[index];
+                            return [
+                                `Win Rate: ${dataPoint.winRate}%`,
+                                `Games: ${dataPoint.games}`,
+                                `Wins: ${dataPoint.wins}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        color: '#bababa',
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#bababa',
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Render ELO rating chart
+ */
+function renderEloChart(data) {
+    const ctx = document.getElementById('eloChart');
+    if (!ctx) return;
+    
+    // Prepare data
+    const labels = data.map(d => {
+        const date = new Date(d.date);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    const eloRatings = data.map(d => d.elo);
+    
+    // Destroy existing chart if it exists
+    if (eloChart) {
+        eloChart.destroy();
+    }
+    
+    // Create chart
+    eloChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'ELO Rating',
+                data: eloRatings,
+                borderColor: '#769656',
+                backgroundColor: 'rgba(118, 150, 86, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        color: '#bababa',
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            const index = context.dataIndex;
+                            const dataPoint = data[index];
+                            return [
+                                `ELO: ${dataPoint.elo}`,
+                                `Game #${dataPoint.gameNumber}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        color: '#bababa'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#bababa',
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
 }
