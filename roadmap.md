@@ -61,7 +61,7 @@ A full-featured web-based chess game built with HTML, CSS, JavaScript, and PHP w
 - [x] Email validation
 - [x] Password hashing (bcrypt)
 - [x] Duplicate username/email check
-- [ ] Email verification system (skipped for now)
+- [x] Email verification system
 
 ### 3.2 User Authentication
 - [x] Login form with validation
@@ -73,7 +73,7 @@ A full-featured web-based chess game built with HTML, CSS, JavaScript, and PHP w
 ### 3.3 User Profiles
 - [x] Profile page with user info
 - [x] Display user statistics (games played, wins, losses, draws)
-- [ ] Win rate and performance graphs
+- [x] Win rate and performance graphs
 - [x] Account settings (change password, email)
 - [ ] Avatar upload
 - [ ] Delete account option

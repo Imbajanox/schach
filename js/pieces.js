@@ -387,7 +387,7 @@ const Pieces = {
         const legalMoves = [];
 
         for (const [square, piece] of Object.entries(position)) {
-            if (piece.color !== color) continue;
+            if (!piece || piece.color !== color) continue;
 
             const moves = this.getValidMoves(position, square, true, gameState);
             

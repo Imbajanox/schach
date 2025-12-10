@@ -354,7 +354,7 @@ function switchTab(tabName) {
  */
 async function loadAndRenderGraphs() {
     try {
-        const response = await fetch('/php/profile/stats-history.php');
+        const response = await fetch('.//php/profile/stats-history.php');
         const result = await response.json();
         
         if (result.success && result.data) {

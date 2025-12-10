@@ -692,7 +692,7 @@ h3 { font-size: 1.125rem; }
    =========================================== */
 
 .review-modal {
-    max-width: 700px;
+    max-width: 1250px;
     width: 95%;
 }
 
@@ -727,7 +727,7 @@ h3 { font-size: 1.125rem; }
 
 .review-board {
     width: 100%;
-    max-width: 400px;
+    max-width: 800px;
     margin: 0 auto;
     aspect-ratio: 1;
     display: grid;
@@ -759,7 +759,7 @@ h3 { font-size: 1.125rem; }
 }
 
 .review-board .piece {
-    font-size: 2rem;
+    font-size: 4rem;
     user-select: none;
 }
 

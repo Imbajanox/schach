@@ -1129,6 +1129,7 @@ class ChessAI {
         let score = 0;
         
         for (const [square, piece] of Object.entries(position)) {
+            if (!piece) continue;
             const file = Utils.fileToIndex(square[0]);
             const rank = Utils.rankToIndex(square[1]);
             
@@ -1164,7 +1165,9 @@ class ChessAI {
         const squares = Object.keys(position).sort();
         for (const sq of squares) {
             const p = position[sq];
-            key += sq + p.color[0] + p.type[0];
+            if (p) {
+                key += sq + p.color[0] + p.type[0];
+            }
         }
         return key;
     }
