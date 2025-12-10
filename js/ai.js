@@ -1041,7 +1041,18 @@ class ChessAI {
         const safeMoves = [];
         const opponentColor = Utils.oppositeColor(color);
         
+        // Add time limit check to prevent hanging
+        const filterStartTime = Date.now();
+        const maxFilterTime = 1000; // 1 second max for filtering
+        
         for (const move of moves) {
+            // Check if we're running out of time
+            if (Date.now() - filterStartTime > maxFilterTime) {
+                // If we've found some safe moves, return them
+                // Otherwise return all moves to avoid getting stuck
+                return safeMoves.length > 0 ? safeMoves : moves;
+            }
+            
             const result = Pieces.makeMove(position, move.from, move, gameState);
             const newPosition = result.position;
             
@@ -1088,16 +1099,27 @@ class ChessAI {
     
     /**
      * Check if a square is defended by the given color
+     * Uses efficient attack checking instead of generating all legal moves
+     * @param {Object} position - Current board position
+     * @param {string} square - Square to check (e.g., 'e4')
+     * @param {string} color - Color of defending pieces
+     * @param {Object} gameState - Game state (unused - kept for API consistency)
+     * @returns {boolean} True if square is defended (can be attacked by) pieces of given color
+     * 
+     * Note: Uses Pieces.isSquareAttacked() which checks if pieces of the given color
+     * can attack the square. This is semantically correct for defense checking:
+     * "Can my pieces attack this square?" = "Is this square defended by my pieces?"
+     * 
+     * gameState is not needed because:
+     * - En passant only applies to pawn captures, not square control/defense
+     * - Castling doesn't affect whether a square is defended
+     * - The attack pattern is determined solely by piece positions
      */
     isSquareDefended(position, square, color, gameState) {
-        // Get all moves that can reach this square
-        const moves = Pieces.getAllLegalMoves(position, color, gameState);
-        for (const move of moves) {
-            if (move.to === square) {
-                return true;
-            }
-        }
-        return false;
+        // Use the efficient isSquareAttacked method instead of getAllLegalMoves
+        // This avoids exponential complexity that caused the hint button to hang
+        // Old: O(n²) generating all legal moves, New: O(1) checking attack patterns
+        return Pieces.isSquareAttacked(position, square, color);
     }
     
     /**
