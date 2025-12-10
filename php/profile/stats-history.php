@@ -84,8 +84,10 @@ $startElo = 1200; // Default starting ELO
 
 // If user has games, simulate ELO progression
 if (count($gameHistory) > 0) {
-    $eloPerGame = ($currentElo - $startElo) / max(1, count($gameHistory));
     $elo = $startElo;
+    
+    // Use seeded random number generator for consistent results
+    mt_srand($userId);
     
     foreach ($gameHistory as $index => $game) {
         // Simulate ELO change based on result
@@ -100,12 +102,13 @@ if (count($gameHistory) > 0) {
         }
         
         // Simulate ELO change (±16 to ±32 points per game)
+        // Using mt_rand with seeded generator for consistent results
         if ($won) {
-            $elo += rand(16, 32);
+            $elo += mt_rand(16, 32);
         } elseif ($draw) {
-            $elo += rand(-5, 5);
+            $elo += mt_rand(-5, 5);
         } else {
-            $elo -= rand(16, 32);
+            $elo -= mt_rand(16, 32);
         }
         
         // Keep ELO in reasonable bounds
@@ -117,6 +120,9 @@ if (count($gameHistory) > 0) {
             'gameNumber' => $index + 1
         ];
     }
+    
+    // Reset random seed to not affect other code
+    mt_srand();
     
     // Adjust final ELO to match current rating
     if (count($eloHistory) > 0) {

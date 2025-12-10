@@ -343,7 +343,7 @@ function switchTab(tabName) {
         selectedTab.classList.add('active');
         
         // Load graphs when graphs tab is opened
-        if (tabName === 'graphs' && !winRateChart && !eloChart) {
+        if (tabName === 'graphs' && (!winRateChart || !eloChart)) {
             loadAndRenderGraphs();
         }
     }
