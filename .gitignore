@@ -1,0 +1,33 @@
+# Email logs (development mode)
+logs/
+*.log
+
+# Configuration (may contain sensitive data in production)
+# Uncomment in production to prevent committing credentials
+# includes/config.php
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Cache
+cache/
+*.cache

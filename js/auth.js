@@ -56,8 +56,14 @@ class AuthManager {
             const data = await response.json();
             
             if (data.success) {
-                this.currentUser = data.user;
-                this.notifyListeners('login', this.currentUser);
+                // Only set current user if email verification is not required
+                if (!data.requires_verification) {
+                    this.currentUser = data.user;
+                    this.notifyListeners('login', this.currentUser);
+                } else {
+                    // Email verification required - don't auto-login
+                    this.notifyListeners('registration', { requires_verification: true });
+                }
             }
             
             return data;

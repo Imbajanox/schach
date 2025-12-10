@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/email.php';
 
 class Auth {
     private $db;
@@ -46,15 +47,19 @@ class Auth {
         
         // Generate verification token
         $verificationToken = bin2hex(random_bytes(32));
+        $verificationExpiry = date('Y-m-d H:i:s', time() + EMAIL_VERIFICATION_EXPIRY);
+        
+        // Determine if user should be verified immediately
+        $isVerified = !EMAIL_VERIFICATION_REQUIRED ? 1 : 0;
         
         try {
             $this->db->beginTransaction();
             
             // Insert user
             $userId = $this->db->insert(
-                "INSERT INTO users (username, email, password_hash, verification_token, is_verified) 
-                 VALUES (?, ?, ?, ?, 1)", // Set is_verified to 1 for now (skip email verification)
-                [$username, $email, $passwordHash, $verificationToken]
+                "INSERT INTO users (username, email, password_hash, verification_token, verification_token_expires, is_verified) 
+                 VALUES (?, ?, ?, ?, ?, ?)",
+                [$username, $email, $passwordHash, $verificationToken, $verificationExpiry, $isVerified]
             );
             
             // Create user stats
@@ -65,10 +70,18 @@ class Auth {
             
             $this->db->commit();
             
+            // Send verification email if required
+            if (EMAIL_VERIFICATION_REQUIRED) {
+                emailService()->sendVerificationEmail($email, $username, $verificationToken);
+            }
+            
             return [
                 'success' => true,
                 'user_id' => $userId,
-                'message' => 'Registration successful!'
+                'message' => EMAIL_VERIFICATION_REQUIRED 
+                    ? 'Registration successful! Please check your email to verify your account.' 
+                    : 'Registration successful!',
+                'requires_verification' => EMAIL_VERIFICATION_REQUIRED
             ];
             
         } catch (Exception $e) {
@@ -128,6 +141,16 @@ class Auth {
         // Check if account is active
         if (!$user['is_active']) {
             return ['success' => false, 'errors' => ['general' => 'Your account has been suspended']];
+        }
+        
+        // Check if email is verified (if verification is required)
+        if (EMAIL_VERIFICATION_REQUIRED && !$user['is_verified']) {
+            return [
+                'success' => false, 
+                'errors' => ['general' => 'Please verify your email address before logging in. Check your inbox for the verification link.'],
+                'requires_verification' => true,
+                'email' => $user['email']
+            ];
         }
         
         // Verify password
@@ -406,6 +429,88 @@ class Auth {
         $this->logout();
         
         return ['success' => true, 'message' => 'Account deleted successfully'];
+    }
+    
+    /**
+     * Verify email with token
+     */
+    public function verifyEmail(string $token): array {
+        // Find user with valid token
+        $user = $this->db->fetchOne(
+            "SELECT id, username, email, is_verified, verification_token_expires 
+             FROM users 
+             WHERE verification_token = ? AND is_active = 1",
+            [$token]
+        );
+        
+        if (!$user) {
+            return ['success' => false, 'errors' => ['token' => 'Invalid verification token']];
+        }
+        
+        // Check if already verified
+        if ($user['is_verified']) {
+            return ['success' => false, 'errors' => ['token' => 'Email already verified']];
+        }
+        
+        // Check if token expired
+        if ($user['verification_token_expires'] && strtotime($user['verification_token_expires']) < time()) {
+            return ['success' => false, 'errors' => ['token' => 'Verification token has expired. Please request a new one.']];
+        }
+        
+        // Update user as verified
+        $this->db->update(
+            "UPDATE users SET is_verified = 1, verification_token = NULL, verification_token_expires = NULL WHERE id = ?",
+            [$user['id']]
+        );
+        
+        // Send welcome email
+        emailService()->sendWelcomeEmail($user['email'], $user['username']);
+        
+        return [
+            'success' => true,
+            'message' => 'Email verified successfully! You can now log in.',
+            'username' => $user['username']
+        ];
+    }
+    
+    /**
+     * Resend verification email
+     */
+    public function resendVerificationEmail(string $email): array {
+        // Find user by email
+        $user = $this->db->fetchOne(
+            "SELECT id, username, email, is_verified 
+             FROM users 
+             WHERE email = ? AND is_active = 1",
+            [$email]
+        );
+        
+        if (!$user) {
+            return ['success' => false, 'errors' => ['email' => 'Email not found']];
+        }
+        
+        // Check if already verified
+        if ($user['is_verified']) {
+            return ['success' => false, 'errors' => ['email' => 'Email already verified']];
+        }
+        
+        // Generate new token
+        $verificationToken = bin2hex(random_bytes(32));
+        $verificationExpiry = date('Y-m-d H:i:s', time() + EMAIL_VERIFICATION_EXPIRY);
+        
+        // Update user with new token
+        $this->db->update(
+            "UPDATE users SET verification_token = ?, verification_token_expires = ? WHERE id = ?",
+            [$verificationToken, $verificationExpiry, $user['id']]
+        );
+        
+        // Send verification email
+        emailService()->sendVerificationEmail($user['email'], $user['username'], $verificationToken);
+        
+        return [
+            'success' => true,
+            'message' => 'Verification email sent! Please check your inbox.'
+        ];
     }
 }
 

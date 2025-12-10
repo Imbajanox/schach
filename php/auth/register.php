@@ -60,15 +60,26 @@ if (!empty($errors)) {
 $result = auth()->register($username, $email, $password);
 
 if ($result['success']) {
-    // Auto-login after registration
-    $loginResult = auth()->login($username, $password);
-    
-    http_response_code(201);
-    echo json_encode([
-        'success' => true,
-        'message' => 'Registration successful!',
-        'user' => $loginResult['user'] ?? null
-    ]);
+    // Only auto-login if email verification is not required
+    if (!$result['requires_verification']) {
+        $loginResult = auth()->login($username, $password);
+        
+        http_response_code(201);
+        echo json_encode([
+            'success' => true,
+            'message' => $result['message'],
+            'user' => $loginResult['user'] ?? null,
+            'requires_verification' => false
+        ]);
+    } else {
+        // Email verification required
+        http_response_code(201);
+        echo json_encode([
+            'success' => true,
+            'message' => $result['message'],
+            'requires_verification' => true
+        ]);
+    }
 } else {
     http_response_code(400);
     echo json_encode($result);
