@@ -172,40 +172,109 @@
         function showSuccess(message, username) {
             const container = document.getElementById('verification-status');
             
-            // Sanitize username before inserting
-            const sanitizedUsername = document.createElement('div');
-            sanitizedUsername.textContent = username;
-            const usernameHTML = username ? `<p class="message">Welcome, <strong>${sanitizedUsername.innerHTML}</strong>!</p>` : '';
+            // Create elements safely to avoid XSS
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'verification-icon success';
+            iconDiv.textContent = '✓';
             
-            container.innerHTML = `
-                <div class="verification-icon success">✓</div>
-                <h1>Email Verified!</h1>
-                <p class="message">${escapeHtml(message)}</p>
-                ${usernameHTML}
-                <a href="index.html" class="btn success">Go to Login</a>
-            `;
+            const heading = document.createElement('h1');
+            heading.textContent = 'Email Verified!';
+            
+            const messagePara = document.createElement('p');
+            messagePara.className = 'message';
+            messagePara.textContent = message;
+            
+            const link = document.createElement('a');
+            link.href = 'index.html';
+            link.className = 'btn success';
+            link.textContent = 'Go to Login';
+            
+            // Clear container and add elements
+            container.innerHTML = '';
+            container.appendChild(iconDiv);
+            container.appendChild(heading);
+            container.appendChild(messagePara);
+            
+            if (username) {
+                const welcomePara = document.createElement('p');
+                welcomePara.className = 'message';
+                welcomePara.textContent = 'Welcome, ';
+                
+                const strong = document.createElement('strong');
+                strong.textContent = username;
+                welcomePara.appendChild(strong);
+                welcomePara.appendChild(document.createTextNode('!'));
+                
+                container.appendChild(welcomePara);
+            }
+            
+            container.appendChild(link);
         }
 
         function showError(message) {
             const container = document.getElementById('verification-status');
-            container.innerHTML = `
-                <div class="verification-icon error">✗</div>
-                <h1>Verification Failed</h1>
-                <p class="message">${escapeHtml(message)}</p>
-                <a href="index.html" class="btn">Back to Home</a>
-                
-                <div class="resend-section">
-                    <p>Need a new verification link?</p>
-                    <form class="resend-form" onsubmit="resendVerification(event)">
-                        <input type="email" id="resend-email" placeholder="Enter your email" required>
-                        <button type="submit" id="resend-btn">Resend</button>
-                    </form>
-                    <p id="resend-message" style="margin-top: 10px; font-size: 14px;"></p>
-                </div>
-            `;
+            
+            // Create elements safely to avoid XSS
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'verification-icon error';
+            iconDiv.textContent = '✗';
+            
+            const heading = document.createElement('h1');
+            heading.textContent = 'Verification Failed';
+            
+            const messagePara = document.createElement('p');
+            messagePara.className = 'message';
+            messagePara.textContent = message;
+            
+            const link = document.createElement('a');
+            link.href = 'index.html';
+            link.className = 'btn';
+            link.textContent = 'Back to Home';
+            
+            // Create resend section
+            const resendSection = document.createElement('div');
+            resendSection.className = 'resend-section';
+            
+            const resendText = document.createElement('p');
+            resendText.textContent = 'Need a new verification link?';
+            
+            const form = document.createElement('form');
+            form.className = 'resend-form';
+            form.onsubmit = resendVerification;
+            
+            const input = document.createElement('input');
+            input.type = 'email';
+            input.id = 'resend-email';
+            input.placeholder = 'Enter your email';
+            input.required = true;
+            
+            const button = document.createElement('button');
+            button.type = 'submit';
+            button.id = 'resend-btn';
+            button.textContent = 'Resend';
+            
+            form.appendChild(input);
+            form.appendChild(button);
+            
+            const resendMessage = document.createElement('p');
+            resendMessage.id = 'resend-message';
+            resendMessage.style.marginTop = '10px';
+            resendMessage.style.fontSize = '14px';
+            
+            resendSection.appendChild(resendText);
+            resendSection.appendChild(form);
+            resendSection.appendChild(resendMessage);
+            
+            // Clear container and add elements
+            container.innerHTML = '';
+            container.appendChild(iconDiv);
+            container.appendChild(heading);
+            container.appendChild(messagePara);
+            container.appendChild(link);
+            container.appendChild(resendSection);
         }
         
-        // Helper function to escape HTML
+        // Helper function to escape HTML (kept for compatibility but now using DOM methods)
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;

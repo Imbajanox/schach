@@ -453,6 +453,7 @@ class Auth {
         }
         
         // Check if token expired
+        // Note: Both MySQL datetime and PHP time() use the server timezone set in config.php
         if ($user['verification_token_expires'] && strtotime($user['verification_token_expires']) < time()) {
             return ['success' => false, 'errors' => ['token' => 'Verification token has expired. Please request a new one.']];
         }
