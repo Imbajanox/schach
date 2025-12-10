@@ -17,6 +17,24 @@ define('SITE_NAME', 'Schach - Chess Game');
 // Session configuration
 define('SESSION_LIFETIME', 86400 * 30); // 30 days
 
+// Email configuration
+define('EMAIL_ENABLED', true); // Set to false to completely disable emails
+define('EMAIL_DEV_MODE', true); // Set to false in production to send emails via SMTP instead of logging to file
+define('EMAIL_FROM_ADDRESS', 'noreply@schach.local');
+define('EMAIL_FROM_NAME', 'Schach Chess Game');
+
+// SMTP Configuration (for production with Netcup/Plesk or other providers)
+define('EMAIL_USE_SMTP', false); // Set to true to use SMTP instead of mail()
+define('EMAIL_SMTP_HOST', 'smtp.example.com'); // SMTP server hostname
+define('EMAIL_SMTP_PORT', 587); // SMTP port (587 for TLS, 465 for SSL, 25 for non-encrypted)
+define('EMAIL_SMTP_USER', ''); // SMTP username
+define('EMAIL_SMTP_PASS', ''); // SMTP password
+define('EMAIL_SMTP_SECURE', 'tls'); // 'tls', 'ssl', or '' for no encryption
+
+// Email verification
+define('EMAIL_VERIFICATION_REQUIRED', true); // Set to false to skip email verification
+define('EMAIL_VERIFICATION_EXPIRY', 86400); // Token expiry time in seconds (24 hours)
+
 // Error reporting (disable in production)
 define('DEBUG_MODE', true);
 

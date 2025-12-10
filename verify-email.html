@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - Schach</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .verification-container {
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .verification-container h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .verification-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .verification-icon.success {
+            color: #27ae60;
+        }
+        
+        .verification-icon.error {
+            color: #e74c3c;
+        }
+        
+        .verification-icon.loading {
+            color: #3498db;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn.success {
+            background-color: #27ae60;
+        }
+        
+        .btn.success:hover {
+            background-color: #229954;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .resend-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .resend-section p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .resend-form {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .resend-form input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 250px;
+        }
+        
+        .resend-form button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .resend-form button:hover {
+            background-color: #2980b9;
+        }
+        
+        .resend-form button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div id="verification-status">
+            <div class="verification-icon loading">
+                <div class="spinner"></div>
+            </div>
+            <h1>Verifying Your Email...</h1>
+            <p class="message">Please wait while we verify your email address.</p>
+        </div>
+    </div>
+
+    <script>
+        // Get token from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        if (!token) {
+            showError('No verification token provided. Please check your email for the verification link.');
+        } else {
+            verifyEmail(token);
+        }
+
+        async function verifyEmail(token) {
+            try {
+                const response = await fetch(`php/auth/verify-email.php?token=${encodeURIComponent(token)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess(data.message, data.username);
+                } else {
+                    const errorMessage = data.errors?.token || data.errors?.general || 'Verification failed';
+                    showError(errorMessage);
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                showError('An error occurred during verification. Please try again later.');
+            }
+        }
+
+        function showSuccess(message, username) {
+            const container = document.getElementById('verification-status');
+            
+            // Create elements safely to avoid XSS
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'verification-icon success';
+            iconDiv.textContent = '✓';
+            
+            const heading = document.createElement('h1');
+            heading.textContent = 'Email Verified!';
+            
+            const messagePara = document.createElement('p');
+            messagePara.className = 'message';
+            messagePara.textContent = message;
+            
+            const link = document.createElement('a');
+            link.href = 'index.html';
+            link.className = 'btn success';
+            link.textContent = 'Go to Login';
+            
+            // Clear container and add elements
+            container.innerHTML = '';
+            container.appendChild(iconDiv);
+            container.appendChild(heading);
+            container.appendChild(messagePara);
+            
+            if (username) {
+                const welcomePara = document.createElement('p');
+                welcomePara.className = 'message';
+                welcomePara.textContent = 'Welcome, ';
+                
+                const strong = document.createElement('strong');
+                strong.textContent = username;
+                welcomePara.appendChild(strong);
+                welcomePara.appendChild(document.createTextNode('!'));
+                
+                container.appendChild(welcomePara);
+            }
+            
+            container.appendChild(link);
+        }
+
+        function showError(message) {
+            const container = document.getElementById('verification-status');
+            
+            // Create elements safely to avoid XSS
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'verification-icon error';
+            iconDiv.textContent = '✗';
+            
+            const heading = document.createElement('h1');
+            heading.textContent = 'Verification Failed';
+            
+            const messagePara = document.createElement('p');
+            messagePara.className = 'message';
+            messagePara.textContent = message;
+            
+            const link = document.createElement('a');
+            link.href = 'index.html';
+            link.className = 'btn';
+            link.textContent = 'Back to Home';
+            
+            // Create resend section
+            const resendSection = document.createElement('div');
+            resendSection.className = 'resend-section';
+            
+            const resendText = document.createElement('p');
+            resendText.textContent = 'Need a new verification link?';
+            
+            const form = document.createElement('form');
+            form.className = 'resend-form';
+            form.onsubmit = resendVerification;
+            
+            const input = document.createElement('input');
+            input.type = 'email';
+            input.id = 'resend-email';
+            input.placeholder = 'Enter your email';
+            input.required = true;
+            
+            const button = document.createElement('button');
+            button.type = 'submit';
+            button.id = 'resend-btn';
+            button.textContent = 'Resend';
+            
+            form.appendChild(input);
+            form.appendChild(button);
+            
+            const resendMessage = document.createElement('p');
+            resendMessage.id = 'resend-message';
+            resendMessage.style.marginTop = '10px';
+            resendMessage.style.fontSize = '14px';
+            
+            resendSection.appendChild(resendText);
+            resendSection.appendChild(form);
+            resendSection.appendChild(resendMessage);
+            
+            // Clear container and add elements
+            container.innerHTML = '';
+            container.appendChild(iconDiv);
+            container.appendChild(heading);
+            container.appendChild(messagePara);
+            container.appendChild(link);
+            container.appendChild(resendSection);
+        }
+        
+        // Helper function to escape HTML (kept for compatibility but now using DOM methods)
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function resendVerification(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('resend-email').value;
+            const button = document.getElementById('resend-btn');
+            const messageEl = document.getElementById('resend-message');
+            
+            button.disabled = true;
+            button.textContent = 'Sending...';
+            messageEl.textContent = '';
+            
+            try {
+                const response = await fetch('php/auth/resend-verification.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    messageEl.style.color = '#27ae60';
+                    messageEl.textContent = data.message;
+                } else {
+                    messageEl.style.color = '#e74c3c';
+                    messageEl.textContent = data.errors?.email || data.errors?.general || 'Failed to resend verification email';
+                }
+            } catch (error) {
+                console.error('Resend error:', error);
+                messageEl.style.color = '#e74c3c';
+                messageEl.textContent = 'An error occurred. Please try again later.';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Resend';
+            }
+        }
+    </script>
+</body>
+</html>

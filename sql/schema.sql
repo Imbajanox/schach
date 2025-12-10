@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     elo_rating INT DEFAULT 1200,
     is_verified TINYINT(1) DEFAULT 0,
     verification_token VARCHAR(64) DEFAULT NULL,
+    verification_token_expires DATETIME DEFAULT NULL,
     reset_token VARCHAR(64) DEFAULT NULL,
     reset_token_expires DATETIME DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -24,7 +25,8 @@ CREATE TABLE IF NOT EXISTS users (
     is_admin TINYINT(1) DEFAULT 0,
     INDEX idx_username (username),
     INDEX idx_email (email),
-    INDEX idx_elo (elo_rating)
+    INDEX idx_elo (elo_rating),
+    INDEX idx_verification_token (verification_token)
 ) ENGINE=InnoDB;
 
 -- User statistics table
