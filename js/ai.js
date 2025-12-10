@@ -1100,10 +1100,16 @@ class ChessAI {
     /**
      * Check if a square is defended by the given color
      * Uses efficient attack checking instead of generating all legal moves
+     * @param {Object} position - Current board position
+     * @param {string} square - Square to check (e.g., 'e4')
+     * @param {string} color - Color of defending pieces
+     * @param {Object} gameState - Game state (not needed for attack detection)
+     * @returns {boolean} True if square is defended by color
      */
     isSquareDefended(position, square, color, gameState) {
         // Use the efficient isSquareAttacked method instead of getAllLegalMoves
         // This avoids exponential complexity in filterSafeMoves
+        // Note: gameState is not needed for basic attack detection (no en passant defense)
         return Pieces.isSquareAttacked(position, square, color);
     }
     
