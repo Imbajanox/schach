@@ -47,6 +47,9 @@ async function loadProfileData() {
         document.getElementById('profileElo').textContent = profile.elo_rating || 1200;
         document.getElementById('profileEmail').textContent = profile.email || 'Not set';
         
+        // Update avatar displays
+        updateAvatarDisplay(profile.avatar);
+        
         // Format join date
         if (profile.created_at) {
             const joinDate = new Date(profile.created_at);
@@ -124,6 +127,9 @@ function setupEventListeners() {
     
     // Change password form submit
     document.getElementById('changePasswordForm')?.addEventListener('submit', handleChangePasswordSubmit);
+    
+    // Avatar management
+    setupAvatarListeners();
     
     // Close modals when clicking outside (with drag protection)
     const editProfileModal = document.getElementById('editProfileModal');
@@ -558,4 +564,248 @@ function renderEloChart(data) {
             }
         }
     });
+}
+
+/**
+ * Setup avatar-related event listeners
+ */
+function setupAvatarListeners() {
+    // Change avatar button
+    document.getElementById('changeAvatarBtn')?.addEventListener('click', async () => {
+        const avatarOptions = document.getElementById('avatarOptions');
+        if (avatarOptions.style.display === 'none') {
+            avatarOptions.style.display = 'block';
+            // Load default avatars
+            await loadDefaultAvatars();
+        } else {
+            avatarOptions.style.display = 'none';
+        }
+    });
+    
+    // Upload avatar button
+    document.getElementById('uploadAvatarBtn')?.addEventListener('click', () => {
+        document.getElementById('avatarUpload').click();
+    });
+    
+    // Avatar file input change
+    document.getElementById('avatarUpload')?.addEventListener('change', handleAvatarUpload);
+    
+    // Generate identicon button
+    document.getElementById('generateIdenticonBtn')?.addEventListener('click', handleGenerateIdenticon);
+    
+    // Delete avatar button
+    document.getElementById('deleteAvatarBtn')?.addEventListener('click', handleDeleteAvatar);
+}
+
+/**
+ * Load default avatars
+ */
+async function loadDefaultAvatars() {
+    try {
+        const response = await fetch('php/avatar.php');
+        const result = await response.json();
+        
+        if (result.success && result.avatars) {
+            const grid = document.getElementById('defaultAvatarsGrid');
+            grid.innerHTML = '';
+            
+            result.avatars.forEach(avatar => {
+                const option = document.createElement('div');
+                option.className = 'default-avatar-option';
+                option.innerHTML = `<img src="${avatar.path}" alt="${avatar.name}">`;
+                option.addEventListener('click', () => handleSelectDefaultAvatar(avatar.path));
+                grid.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Failed to load default avatars:', error);
+    }
+}
+
+/**
+ * Handle avatar upload
+ */
+async function handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File too large. Maximum size is 5MB.');
+        return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        alert('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    try {
+        const response = await fetch('php/avatar.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update avatar display
+            updateAvatarDisplay(result.avatar);
+            // Hide avatar options
+            document.getElementById('avatarOptions').style.display = 'none';
+            // Reload profile data
+            await loadProfileData();
+            alert('Avatar uploaded successfully!');
+        } else {
+            alert(result.errors?.avatar || result.errors?.general || 'Failed to upload avatar');
+        }
+    } catch (error) {
+        console.error('Avatar upload failed:', error);
+        alert('Failed to upload avatar. Please try again.');
+    }
+    
+    // Reset file input
+    event.target.value = '';
+}
+
+/**
+ * Handle generate identicon
+ */
+async function handleGenerateIdenticon() {
+    try {
+        const response = await fetch('php/avatar.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'select',
+                avatar: 'identicon'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            updateAvatarDisplay(result.avatar);
+            document.getElementById('avatarOptions').style.display = 'none';
+            await loadProfileData();
+            alert('Identicon generated successfully!');
+        } else {
+            alert(result.errors?.general || 'Failed to generate identicon');
+        }
+    } catch (error) {
+        console.error('Identicon generation failed:', error);
+        alert('Failed to generate identicon. Please try again.');
+    }
+}
+
+/**
+ * Handle select default avatar
+ */
+async function handleSelectDefaultAvatar(avatarPath) {
+    try {
+        const response = await fetch('php/avatar.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'select',
+                avatar: avatarPath
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            updateAvatarDisplay(result.avatar);
+            document.getElementById('avatarOptions').style.display = 'none';
+            await loadProfileData();
+            alert('Avatar updated successfully!');
+        } else {
+            alert(result.errors?.general || 'Failed to select avatar');
+        }
+    } catch (error) {
+        console.error('Avatar selection failed:', error);
+        alert('Failed to select avatar. Please try again.');
+    }
+}
+
+/**
+ * Handle delete avatar
+ */
+async function handleDeleteAvatar() {
+    if (!confirm('Are you sure you want to remove your avatar?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('php/avatar.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'delete'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            updateAvatarDisplay(null);
+            document.getElementById('avatarOptions').style.display = 'none';
+            await loadProfileData();
+            alert('Avatar removed successfully!');
+        } else {
+            alert(result.errors?.general || 'Failed to remove avatar');
+        }
+    } catch (error) {
+        console.error('Avatar deletion failed:', error);
+        alert('Failed to remove avatar. Please try again.');
+    }
+}
+
+/**
+ * Update avatar display
+ */
+function updateAvatarDisplay(avatarPath) {
+    // Update in modal preview
+    const currentAvatarImg = document.getElementById('currentAvatarImg');
+    const currentAvatarPlaceholder = document.getElementById('currentAvatarPlaceholder');
+    
+    if (avatarPath) {
+        currentAvatarImg.src = avatarPath;
+        currentAvatarImg.style.display = 'block';
+        currentAvatarPlaceholder.style.display = 'none';
+    } else {
+        currentAvatarImg.style.display = 'none';
+        currentAvatarPlaceholder.style.display = 'block';
+    }
+    
+    // Update profile page large avatar
+    const profileAvatar = document.getElementById('profileAvatar');
+    if (profileAvatar) {
+        if (avatarPath) {
+            profileAvatar.innerHTML = `<img src="${avatarPath}" alt="Avatar">`;
+        } else {
+            profileAvatar.innerHTML = '👤';
+        }
+    }
+    
+    // Update header avatar
+    const headerAvatar = document.getElementById('userAvatar');
+    if (headerAvatar) {
+        if (avatarPath) {
+            headerAvatar.innerHTML = `<img src="${avatarPath}" alt="Avatar">`;
+        } else {
+            headerAvatar.innerHTML = '👤';
+        }
+    }
 }

@@ -1382,8 +1382,10 @@ function updateUIForLoggedInUser(user) {
     const userInfo = document.getElementById('userInfo');
     const headerUsername = document.getElementById('headerUsername');
     const headerRating = document.getElementById('headerRating');
+    const headerAvatar = document.getElementById('userAvatar');
     const playerName = document.querySelector('.player-info.bottom .player-name');
     const playerRating = document.querySelector('.player-info.bottom .player-rating');
+    const playerAvatar = document.querySelector('.player-info.bottom .player-avatar');
     
     // Hide login/register buttons
     if (authButtons) authButtons.style.display = 'none';
@@ -1395,9 +1397,27 @@ function updateUIForLoggedInUser(user) {
     if (headerUsername) headerUsername.textContent = user.username;
     if (headerRating) headerRating.textContent = `ELO: ${user.elo_rating || 1200}`;
     
+    // Update header avatar
+    if (headerAvatar) {
+        if (user.avatar) {
+            headerAvatar.innerHTML = `<img src="${user.avatar}" alt="Avatar">`;
+        } else {
+            headerAvatar.innerHTML = '👤';
+        }
+    }
+    
     // Update player info on board
     if (playerName) playerName.textContent = user.username;
     if (playerRating) playerRating.textContent = `ELO: ${user.elo_rating || 1200}`;
+    
+    // Update player avatar on board
+    if (playerAvatar) {
+        if (user.avatar) {
+            playerAvatar.innerHTML = `<img src="${user.avatar}" alt="Avatar">`;
+        } else {
+            playerAvatar.innerHTML = '👤';
+        }
+    }
 }
 
 /**
