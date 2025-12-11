@@ -73,15 +73,26 @@ function handleUploadAvatar(): void {
     
     $file = $_FILES['avatar'];
     
-    // Validate file type
-    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    $fileType = mime_content_type($file['tmp_name']);
+    // Validate file type using finfo for better security
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $fileType = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
     
-    if (!in_array($fileType, $allowedTypes)) {
+    $allowedTypes = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp'
+    ];
+    
+    if (!isset($allowedTypes[$fileType])) {
         http_response_code(400);
         echo json_encode(['success' => false, 'errors' => ['avatar' => 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.']]);
         return;
     }
+    
+    // Use validated extension from MIME type instead of user input
+    $extension = $allowedTypes[$fileType];
     
     // Validate file size (max 5MB)
     $maxSize = 5 * 1024 * 1024;
@@ -99,8 +110,7 @@ function handleUploadAvatar(): void {
         mkdir($uploadDir, 0755, true);
     }
     
-    // Generate unique filename
-    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    // Generate unique filename with validated extension
     $filename = 'user_' . $userId . '_' . time() . '.' . $extension;
     $filepath = $uploadDir . '/' . $filename;
     
@@ -248,13 +258,26 @@ function handleUpdateAvatar(): void {
                 echo json_encode(['success' => false, 'errors' => ['general' => 'Failed to generate identicon']]);
             }
         } else {
-            // Use default avatar
-            $defaultPath = 'uploads/avatars/default/' . basename($avatar);
+            // Use default avatar - validate against whitelist
+            $allowedAvatars = [
+                'king.png', 'queen.png', 'rook.png', 'bishop.png', 'knight.png', 'pawn.png',
+                'identicon_player1.png', 'identicon_player2.png', 'identicon_player3.png',
+                'identicon_player4.png', 'identicon_player5.png'
+            ];
+            
+            $avatarFilename = basename($avatar);
+            if (!in_array($avatarFilename, $allowedAvatars)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'errors' => ['avatar' => 'Invalid avatar selection']]);
+                return;
+            }
+            
+            $defaultPath = 'uploads/avatars/default/' . $avatarFilename;
             $fullPath = __DIR__ . '/../' . $defaultPath;
             
             if (!file_exists($fullPath)) {
                 http_response_code(400);
-                echo json_encode(['success' => false, 'errors' => ['avatar' => 'Invalid avatar selection']]);
+                echo json_encode(['success' => false, 'errors' => ['avatar' => 'Avatar file not found']]);
                 return;
             }
             
@@ -299,7 +322,6 @@ function optimizeImage(string $filepath, string $extension): ?string {
     $image = null;
     switch (strtolower($extension)) {
         case 'jpg':
-        case 'jpeg':
             $image = @imagecreatefromjpeg($filepath);
             break;
         case 'png':
@@ -314,6 +336,7 @@ function optimizeImage(string $filepath, string $extension): ?string {
     }
     
     if (!$image) {
+        error_log("Failed to create image from file: $filepath (extension: $extension)");
         return null;
     }
     
@@ -340,9 +363,9 @@ function optimizeImage(string $filepath, string $extension): ?string {
         // Resize
         imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
         
-        // Save optimized image
+        // Save optimized image with unique suffix to avoid conflicts
         $newPath = pathinfo($filepath, PATHINFO_DIRNAME) . '/' . 
-                   pathinfo($filepath, PATHINFO_FILENAME) . '_optimized.' . $extension;
+                   pathinfo($filepath, PATHINFO_FILENAME) . '_opt_' . bin2hex(random_bytes(4)) . '.' . $extension;
         
         $success = false;
         switch (strtolower($extension)) {

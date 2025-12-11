@@ -26,8 +26,8 @@ class AvatarGenerator {
      * Generate identicon based on username
      */
     public function generateIdenticon(string $username, string $outputPath): bool {
-        // Create hash from username
-        $hash = md5($username);
+        // Create hash from username using SHA-256 for better security
+        $hash = hash('sha256', $username);
         
         // Select color based on hash
         $colorIndex = hexdec(substr($hash, 0, 2)) % count($this->colors);
