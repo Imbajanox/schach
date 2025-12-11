@@ -222,6 +222,56 @@
         <div class="modal-content auth-modal">
             <button class="modal-close" id="editProfileModalClose">&times;</button>
             <h2>Edit Profile</h2>
+            
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+                <div class="avatar-preview-container">
+                    <div class="avatar-preview" id="avatarPreview">
+                        <img id="currentAvatarImg" src="" alt="Avatar" style="display: none;">
+                        <span id="currentAvatarPlaceholder">👤</span>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" id="changeAvatarBtn">
+                        <i class="fa-solid fa-camera"></i> Change Avatar
+                    </button>
+                </div>
+                
+                <!-- Avatar Options (hidden by default) -->
+                <div class="avatar-options" id="avatarOptions" style="display: none;">
+                    <h4>Choose Avatar</h4>
+                    
+                    <!-- Upload Custom Avatar -->
+                    <div class="upload-section">
+                        <input type="file" id="avatarUpload" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
+                        <button type="button" class="btn btn-primary btn-sm btn-block" id="uploadAvatarBtn">
+                            <i class="fa-solid fa-upload"></i> Upload Custom Avatar
+                        </button>
+                        <p class="help-text">Max 5MB. JPEG, PNG, GIF, or WebP</p>
+                    </div>
+                    
+                    <!-- Generate Identicon -->
+                    <div class="identicon-section">
+                        <button type="button" class="btn btn-secondary btn-sm btn-block" id="generateIdenticonBtn">
+                            <i class="fa-solid fa-sparkles"></i> Generate Unique Pattern
+                        </button>
+                    </div>
+                    
+                    <!-- Default Avatars -->
+                    <div class="default-avatars-section">
+                        <p class="section-label">Or choose a default:</p>
+                        <div class="default-avatars-grid" id="defaultAvatarsGrid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    
+                    <!-- Delete Avatar -->
+                    <div class="delete-section">
+                        <button type="button" class="btn btn-danger btn-sm btn-block" id="deleteAvatarBtn">
+                            <i class="fa-solid fa-trash"></i> Remove Avatar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
             <form id="editProfileForm" class="auth-form">
                 <div class="form-group">
                     <label for="editEmail">Email</label>

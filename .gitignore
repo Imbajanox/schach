@@ -31,3 +31,8 @@ temp/
 # Cache
 cache/
 *.cache
+
+# User uploaded avatars
+uploads/avatars/users/
+# Keep default avatars in git
+!uploads/avatars/default/
