@@ -1570,30 +1570,41 @@ async function handleRoguelikeGameOver(result) {
                 // ============================================
                 ui.updateStatus(`Click a ${selectedUpgrade.targetPiece} to upgrade`, 'highlight');
                 
-                // Temporarily override square click handler
+                // Temporarily override square click handler with error handling
                 const originalHandler = board.onSquareClick;
+                const restoreHandler = () => {
+                    board.onSquareClick = originalHandler;
+                };
+                
                 board.onSquareClick = (square) => {
-                    const piece = game.position[square];
-                    
-                    if (piece && piece.type === selectedUpgrade.targetPiece && piece.color === game.playerColor) {
-                        // Valid selection
-                        const success = game.applyUpgrade(selectedUpgrade.id, square);
+                    try {
+                        const piece = game.position[square];
                         
-                        if (success) {
-                            ui.updateStatus(`${selectedUpgrade.name} applied to ${square}!`, 'success');
-                            board.onSquareClick = originalHandler;  // Restore handler
+                        if (piece && piece.type === selectedUpgrade.targetPiece && piece.color === game.playerColor) {
+                            // Valid selection
+                            const success = game.applyUpgrade(selectedUpgrade.id, square);
                             
-                            // Visual feedback
-                            board.highlightSquare(square, 'selected');
-                            setTimeout(() => {
-                                board.clearHighlights();
-                                proceedToNextEncounter();
-                            }, 1500);
+                            if (success) {
+                                ui.updateStatus(`${selectedUpgrade.name} applied to ${square}!`, 'success');
+                                restoreHandler();  // Restore handler
+                                
+                                // Visual feedback
+                                board.highlightSquare(square, 'selected');
+                                setTimeout(() => {
+                                    board.clearHighlights();
+                                    proceedToNextEncounter();
+                                }, 1500);
+                            } else {
+                                ui.updateStatus('Failed to apply upgrade', 'error');
+                                restoreHandler();  // Restore handler even on failure
+                            }
                         } else {
-                            ui.updateStatus('Failed to apply upgrade', 'error');
+                            ui.updateStatus(`Select a ${selectedUpgrade.targetPiece}`, 'warning');
                         }
-                    } else {
-                        ui.updateStatus(`Select a ${selectedUpgrade.targetPiece}`, 'warning');
+                    } catch (error) {
+                        console.error('[Roguelike] Error applying upgrade:', error);
+                        ui.updateStatus('Error applying upgrade', 'error');
+                        restoreHandler();  // Always restore handler
                     }
                 };
             } else {

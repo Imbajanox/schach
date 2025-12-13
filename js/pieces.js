@@ -522,15 +522,14 @@ const Pieces = {
         // ============================================
         let newUpgrades = pieceUpgrades ? Utils.deepClone(pieceUpgrades) : null;
         if (newUpgrades && newUpgrades[from]) {
-            newUpgrades[move.to] = newUpgrades[from];
+            // If there was a captured piece with upgrades at the target, it's now removed
+            if (newUpgrades[targetSquare] && capturedPiece) {
+                console.log(`[Upgrades] Removed upgrade from captured piece at ${targetSquare}`);
+            }
+            // Transfer the moving piece's upgrades to new square
+            newUpgrades[targetSquare] = newUpgrades[from];
             delete newUpgrades[from];
-            console.log(`[Upgrades] Transferred upgrade from ${from} to ${move.to}`);
-        }
-        
-        // Remove upgrade data for captured piece
-        if (newUpgrades && capturedPiece && newUpgrades[move.to] && move.capture) {
-            // The captured piece had an upgrade, but we're overwriting it
-            console.log(`[Upgrades] Removed upgrade from captured piece at ${move.to}`);
+            console.log(`[Upgrades] Transferred upgrade from ${from} to ${targetSquare}`);
         }
 
         return {

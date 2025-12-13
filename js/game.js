@@ -204,7 +204,10 @@ class ChessGame {
                 });
             }
             
-            // DON'T switch turns - attacker stays to play  
+            // DON'T switch turns - attacker stays to play
+            // This is intentional: when HP is reduced but piece survives, 
+            // the attacking player gets another chance to capture or move elsewhere
+            // This prevents the HP system from being too powerful
             this.checkGameState();
             return {
                 from,

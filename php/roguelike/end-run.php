@@ -81,16 +81,20 @@ try {
     ]);
     
     // Update meta progression
-    $metaUpdates = [
-        'highest_zone_reached' => db()->raw("GREATEST(highest_zone_reached, $finalZone)")
-    ];
+    $metaQuery = "UPDATE roguelike_meta_progression 
+                  SET highest_zone_reached = GREATEST(highest_zone_reached, ?)";
+    $metaParams = [$finalZone];
     
     if ($victory) {
-        $metaUpdates['total_victories'] = db()->raw('total_victories + 1');
-        $metaUpdates['meta_currency'] = db()->raw('meta_currency + ' . intval($finalGold / 10));
+        $metaQuery .= ", total_victories = total_victories + 1,
+                       meta_currency = meta_currency + ?";
+        $metaParams[] = intval($finalGold / 10);
     }
     
-    db()->update('roguelike_meta_progression', $metaUpdates, ['user_id' => $userId]);
+    $metaQuery .= " WHERE user_id = ?";
+    $metaParams[] = $userId;
+    
+    db()->update($metaQuery, $metaParams);
     
     // Get updated stats
     $stats = db()->fetchOne(
