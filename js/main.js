@@ -1480,7 +1480,7 @@ async function startRoguelikeRun() {
     
     try {
         // Fetch player stats for dashboard
-        const response = await fetch('/php/roguelike/get-stats.php', {
+        const response = await fetch('php/roguelike/get-stats.php', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -1515,7 +1515,7 @@ async function initializeRoguelikeRun() {
     
     try {
         // Call backend to create run
-        const response = await fetch('/php/roguelike/start-run.php', {
+        const response = await fetch('php/roguelike/start-run.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -1712,7 +1712,7 @@ async function endRoguelikeRun(victory) {
     console.log(`[Roguelike] Ending run - Victory: ${victory}`);
     
     try {
-        const response = await fetch('/php/roguelike/end-run.php', {
+        const response = await fetch('php/roguelike/end-run.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

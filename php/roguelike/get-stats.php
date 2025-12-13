@@ -27,9 +27,7 @@ if (!$userId) {
 try {
     // Get meta progression stats
     $stats = db()->fetchOne(
-        "SELECT total_runs, total_victories, highest_zone_reached, meta_currency 
-         FROM roguelike_meta_progression 
-         WHERE user_id = ?",
+        "SELECT total_runs, total_victories, highest_zone_reached, meta_currency FROM roguelike_meta_progression WHERE user_id = ?",
         [$userId]
     );
     
