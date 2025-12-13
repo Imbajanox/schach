@@ -411,9 +411,64 @@ const Pieces = {
     /**
      * Make a move and return new position
      */
-    makeMove(position, from, move, gameState) {
+    /**
+     * Make a move and return the new position (simulation for validation)
+     * NOW SUPPORTS: Upgrade tracking and HP system
+     * 
+     * @param {Object} position - Current position
+     * @param {String} from - From square (e.g., 'e2')
+     * @param {Object} move - Move object or target square string
+     * @param {Object} gameState - Game state (castling, en passant, etc.)
+     * @param {Object} pieceUpgrades - Optional upgrade tracking object
+     * @returns {Object} { position, upgrades, captured, damageDealt, enPassantSquare, capturedPiece }
+     */
+    makeMove(position, from, move, gameState, pieceUpgrades = null) {
         const newPosition = Utils.deepClone(position);
         const piece = newPosition[from];
+        
+        // Parse move target
+        const target = move.to || move;
+        const targetSquare = typeof target === 'string' ? target : target.to;
+        
+        // ============================================
+        // NEW: Handle HP System for Captures
+        // ============================================
+        if (newPosition[targetSquare]) {  // There's a piece to capture
+            if (pieceUpgrades && pieceUpgrades[targetSquare]) {
+                const targetUpgrade = pieceUpgrades[targetSquare];
+                
+                // Check if target has HP (e.g., Schildträger pawn)
+                if (targetUpgrade.hp && targetUpgrade.hp > 1) {
+                    // Reduce HP instead of capturing
+                    const newUpgrades = Utils.deepClone(pieceUpgrades);
+                    newUpgrades[targetSquare].hp--;
+                    
+                    console.log(`[HP System] ${targetSquare} took damage: ${newUpgrades[targetSquare].hp}/${targetUpgrade.maxHp} HP remaining`);
+                    
+                    // Return WITHOUT moving the piece (capture failed, piece survives)
+                    return {
+                        position: newPosition,  // Position unchanged (no move made)
+                        upgrades: newUpgrades,
+                        captured: false,
+                        damageDealt: true,
+                        remainingHp: newUpgrades[targetSquare].hp,
+                        enPassantSquare: null
+                    };
+                }
+                
+                // HP depleted or no HP - proceed with normal capture
+                if (targetUpgrade.hp) {
+                    console.log(`[HP System] ${targetSquare} HP depleted, piece captured`);
+                }
+            }
+        }
+        
+        // ============================================
+        // Standard Capture & Move Logic
+        // ============================================
+        
+        // Store captured piece
+        const capturedPiece = move.capture ? newPosition[targetSquare] : null;
         
         // Remove piece from origin
         delete newPosition[from];
@@ -425,6 +480,11 @@ const Pieces = {
                 String(parseInt(move.to[1]) + 1);
             const captureSquare = move.to[0] + captureRank;
             delete newPosition[captureSquare];
+            
+            // Also remove upgrade data for en passant captured piece
+            if (pieceUpgrades && pieceUpgrades[captureSquare]) {
+                delete pieceUpgrades[captureSquare];
+            }
         }
         
         // Handle promotion
@@ -457,10 +517,29 @@ const Pieces = {
             }
         }
 
+        // ============================================
+        // Transfer upgrades to new square
+        // ============================================
+        let newUpgrades = pieceUpgrades ? Utils.deepClone(pieceUpgrades) : null;
+        if (newUpgrades && newUpgrades[from]) {
+            newUpgrades[move.to] = newUpgrades[from];
+            delete newUpgrades[from];
+            console.log(`[Upgrades] Transferred upgrade from ${from} to ${move.to}`);
+        }
+        
+        // Remove upgrade data for captured piece
+        if (newUpgrades && capturedPiece && newUpgrades[move.to] && move.capture) {
+            // The captured piece had an upgrade, but we're overwriting it
+            console.log(`[Upgrades] Removed upgrade from captured piece at ${move.to}`);
+        }
+
         return {
             position: newPosition,
+            upgrades: newUpgrades,
+            captured: !!capturedPiece,
+            damageDealt: false,
             enPassantSquare,
-            capturedPiece: move.capture ? position[move.to] : null
+            capturedPiece
         };
     }
 };

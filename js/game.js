@@ -134,6 +134,7 @@ class ChessGame {
 
     /**
      * Make a move
+     * NOW SUPPORTS: Roguelike upgrades and HP system
      */
     makeMove(from, to, promotion = null) {
         if (this.gameState !== GAME_STATES.ACTIVE && this.gameState !== GAME_STATES.CHECK) {
@@ -160,9 +161,68 @@ class ChessGame {
         const previousPosition = Utils.deepClone(this.position);
         const capturedPiece = this.position[to] || (move.enPassant ? this.getEnPassantCapture(to) : null);
 
-        // Make the move
-        const result = Pieces.makeMove(this.position, from, move, this.getGameState());
+        // ============================================
+        // NEW: Execute move with upgrade support
+        // ============================================
+        const result = Pieces.makeMove(
+            this.position,
+            from,
+            move,
+            this.getGameState(),
+            this.roguelikeMode ? this.pieceUpgrades : null  // Pass upgrades only in roguelike mode
+        );
+
+        // ============================================
+        // NEW: Handle damage dealt (HP reduced, no capture)
+        // ============================================
+        if (result.damageDealt) {
+            console.log(`[Game] Damage dealt to ${to}, ${result.remainingHp} HP remaining`);
+            
+            // Update upgrades but NOT position (piece survives)
+            if (result.upgrades) {
+                this.pieceUpgrades = result.upgrades;
+            }
+            
+            // Trigger visual feedback via callback
+            if (this.onMove) {
+                this.onMove({
+                    from,
+                    to,
+                    piece: piece.type,
+                    color: piece.color,
+                    notation: `${from}→${to} (blocked by shield)`,
+                    damageDealt: true,
+                    remainingHp: result.remainingHp,
+                    fen: Utils.toFEN(
+                        this.position, 
+                        this.currentTurn, 
+                        this.castlingRights, 
+                        this.enPassantSquare,
+                        this.halfMoveClock, 
+                        this.fullMoveNumber
+                    )
+                });
+            }
+            
+            // DON'T switch turns - attacker stays to play  
+            this.checkGameState();
+            return {
+                from,
+                to,
+                damageDealt: true,
+                remainingHp: result.remainingHp
+            };
+        }
+
+        // ============================================
+        // Standard move logic continues
+        // ============================================
         this.position = result.position;
+        
+        // Update upgrades if in roguelike mode
+        if (result.upgrades) {
+            this.pieceUpgrades = result.upgrades;
+        }
 
         // Update game state
         this.updateCastlingRights(from, to, piece);
@@ -630,5 +690,75 @@ class ChessGame {
      */
     getKingSquare(color) {
         return Pieces.findKing(this.position, color);
+    }
+
+    /**
+     * Apply an upgrade to a specific piece or globally (artifact)
+     * @param {String} upgradeKey - Key from ROGUELIKE_UPGRADES (e.g., 'SCHILDTRAEGER')
+     * @param {String} targetSquare - Square to apply upgrade (null for artifacts)
+     * @returns {Boolean} Success status
+     */
+    applyUpgrade(upgradeKey, targetSquare = null) {
+        const upgrade = ROGUELIKE_UPGRADES[upgradeKey];
+        if (!upgrade) {
+            console.error('[Upgrade] Unknown upgrade:', upgradeKey);
+            return false;
+        }
+        
+        console.log(`[Upgrade] Applying ${upgrade.name} to ${targetSquare || 'global'}`);
+        
+        if (upgrade.type === 'artifact') {
+            // ============================================
+            // Global Effect (Artifact)
+            // ============================================
+            this.artifacts.push(upgrade);
+            const artifactData = upgrade.apply();
+            
+            // Apply artifact properties to game (e.g., undoCharges)
+            Object.assign(this, artifactData);
+            console.log('[Upgrade] Artifact applied:', artifactData);
+            
+        } else {
+            // ============================================
+            // Piece-Specific Upgrade
+            // ============================================
+            if (!targetSquare) {
+                console.error('[Upgrade] Piece upgrade requires target square');
+                return false;
+            }
+            
+            const piece = this.position[targetSquare];
+            if (!piece) {
+                console.error(`[Upgrade] No piece at ${targetSquare}`);
+                return false;
+            }
+            
+            if (piece.type !== upgrade.targetPiece) {
+                console.error(`[Upgrade] Cannot apply ${upgrade.name} to ${piece.type}`);
+                return false;
+            }
+            
+            if (piece.color !== this.playerColor) {
+                console.error(`[Upgrade] Can only upgrade your own pieces`);
+                return false;
+            }
+            
+            // Initialize or update upgrade for this piece
+            if (!this.pieceUpgrades[targetSquare]) {
+                this.pieceUpgrades[targetSquare] = { abilities: [] };
+            }
+            
+            const upgradeData = upgrade.apply(piece);
+            Object.assign(this.pieceUpgrades[targetSquare], upgradeData);
+            
+            console.log(`[Upgrade] Applied to ${targetSquare}:`, this.pieceUpgrades[targetSquare]);
+        }
+        
+        // Trigger callback
+        if (this.onUpgradeApplied) {
+            this.onUpgradeApplied(upgrade, targetSquare);
+        }
+        
+        return true;
     }
 }
