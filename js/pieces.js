@@ -426,9 +426,8 @@ const Pieces = {
         const newPosition = Utils.deepClone(position);
         const piece = newPosition[from];
         
-        // Parse move target
-        const target = move.to || move;
-        const targetSquare = typeof target === 'string' ? target : target.to;
+        // Parse move target (move can be string 'e4' or object { to: 'e4', ... })
+        const targetSquare = typeof move === 'string' ? move : move.to;
         
         // ============================================
         // NEW: Handle HP System for Captures

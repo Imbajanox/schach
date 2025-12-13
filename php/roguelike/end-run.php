@@ -94,7 +94,7 @@ try {
     $metaQuery .= " WHERE user_id = ?";
     $metaParams[] = $userId;
     
-    db()->update($metaQuery, $metaParams);
+    db()->query($metaQuery, $metaParams);
     
     // Get updated stats
     $stats = db()->fetchOne(

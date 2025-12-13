@@ -293,6 +293,41 @@
 
 @media (max-width: 1200px) {
     .roguelike-hud {
-        display: none !important;  /* Hide HUD on smaller screens */
+        /* On smaller screens, make HUD compact and positioned differently */
+        top: auto;
+        bottom: 10px;
+        right: 10px;
+        width: 200px;
+        font-size: 12px;
+    }
+    
+    .hud-section {
+        padding: 12px;
+    }
+    
+    .hud-section h3 {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+    
+    .gold-amount {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .roguelike-hud {
+        /* On mobile, make HUD even more compact or collapsible */
+        width: 150px;
+        opacity: 0.9;
+    }
+    
+    .hud-section {
+        padding: 8px;
+    }
+    
+    .upgrade-badge, .artifact-badge {
+        font-size: 10px;
+        padding: 4px 8px;
     }
 }
