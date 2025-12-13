@@ -64,6 +64,10 @@ function setupEventListeners() {
     ui.elements.vsAiBtn?.addEventListener('click', () => setGameMode(GAME_MODES.VS_AI));
     ui.elements.vsPlayerLocalBtn?.addEventListener('click', () => setGameMode(GAME_MODES.PVP_LOCAL));
     ui.elements.vsPlayerOnlineBtn?.addEventListener('click', () => setGameMode(GAME_MODES.PVP_ONLINE));
+    
+    // Roguelike mode button
+    const roguelikeBtn = document.getElementById('roguelikeBtn');
+    roguelikeBtn?.addEventListener('click', startRoguelikeRun);
 
     // Color selection buttons
     ui.setupColorButtons();
@@ -1438,4 +1442,255 @@ function updateUIForGuest() {
     // Reset player info on board
     if (playerName) playerName.textContent = 'You';
     if (playerRating) playerRating.textContent = 'Guest';
+}
+
+// ============================================
+// Roguelike Mode Functions
+// ============================================
+
+/**
+ * Start a new roguelike run
+ */
+async function startRoguelikeRun() {
+    // Check authentication
+    if (!isAuthenticated) {
+        auth.showModal('login');
+        ui.updateStatus('Please login to play Roguelike mode', 'warning');
+        return;
+    }
+    
+    console.log('[Roguelike] Starting new run...');
+    
+    try {
+        // Call backend to create run
+        const response = await fetch('/php/roguelike/start-run.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            const errorMsg = result.errors?.general || 'Failed to start run';
+            ui.updateStatus(errorMsg, 'error');
+            alert(errorMsg);
+            return;
+        }
+        
+        console.log('[Roguelike] Run created:', result.data);
+        
+        // Initialize game in roguelike mode
+        game.roguelikeMode = true;
+        game.runId = result.data.runId;
+        game.currentZone = result.data.currentZone || 1;
+        game.currentEncounter = result.data.currentEncounter || 1;
+        game.gold = result.data.gold || 0;
+        game.pieceUpgrades = {};
+        game.artifacts = [];
+        
+        // Setup callbacks
+        game.onGameOver = handleRoguelikeGameOver;
+        
+        // Start first encounter
+        startRoguelikeEncounter();
+        
+    } catch (error) {
+        console.error('[Roguelike] Error starting run:', error);
+        ui.updateStatus('Network error. Please try again.', 'error');
+    }
+}
+
+/**
+ * Start a roguelike encounter (chess match)
+ */
+function startRoguelikeEncounter() {
+    console.log(`[Roguelike] Starting Zone ${game.currentZone}, Encounter ${game.currentEncounter}`);
+    
+    // Show HUD
+    ui.toggleRoguelikeHUD(true);
+    ui.updateRoguelikeHUD({
+        zone: game.currentZone,
+        encounter: game.currentEncounter,
+        gold: game.gold,
+        pieceUpgrades: game.pieceUpgrades,
+        artifacts: game.artifacts
+    });
+    
+    // Start chess game with current upgrades intact
+    const position = game.newGame({
+        mode: GAME_MODES.ROGUELIKE,
+        playerColor: COLORS.WHITE,
+        difficulty: AI_DIFFICULTIES.EASY  // TODO: Map to enemy type in Phase 3
+    });
+    
+    board.renderPosition(position);
+    ui.updateStatus(`Zone ${game.currentZone} - Encounter ${game.currentEncounter}`, 'info');
+    
+    // Setup AI to play as black
+    setupAIOpponent();
+}
+
+/**
+ * Handle end of roguelike game (win or loss)
+ */
+async function handleRoguelikeGameOver(result) {
+    console.log('[Roguelike] Game over:', result);
+    
+    if (result.winner === game.playerColor) {
+        // ============================================
+        // VICTORY - Show upgrade selection
+        // ============================================
+        console.log('[Roguelike] Victory! Showing rewards...');
+        
+        // Award gold
+        const goldReward = 50;
+        game.gold += goldReward;
+        
+        // Generate upgrade options (for MVP, use same upgrades)
+        const availableUpgrades = [
+            ROGUELIKE_UPGRADES.SCHILDTRAEGER,
+            ROGUELIKE_UPGRADES.ZEITUMKEHR
+        ];
+        
+        // Randomly pick 2 upgrades
+        const upgradeOptions = [];
+        const upgradePool = [...availableUpgrades];
+        for (let i = 0; i < Math.min(2, upgradePool.length); i++) {
+            const index = Math.floor(Math.random() * upgradePool.length);
+            upgradeOptions.push(upgradePool.splice(index, 1)[0]);
+        }
+        
+        // Show upgrade selection modal
+        ui.showUpgradeModal(upgradeOptions, async (selectedUpgrade) => {
+            console.log('[Roguelike] Player selected:', selectedUpgrade.name);
+            
+            if (selectedUpgrade.type === 'piece_stat' || selectedUpgrade.type === 'ability') {
+                // ============================================
+                // Piece Upgrade - Let player select which piece
+                // ============================================
+                ui.updateStatus(`Click a ${selectedUpgrade.targetPiece} to upgrade`, 'highlight');
+                
+                // Temporarily override square click handler
+                const originalHandler = board.onSquareClick;
+                board.onSquareClick = (square) => {
+                    const piece = game.position[square];
+                    
+                    if (piece && piece.type === selectedUpgrade.targetPiece && piece.color === game.playerColor) {
+                        // Valid selection
+                        const success = game.applyUpgrade(selectedUpgrade.id, square);
+                        
+                        if (success) {
+                            ui.updateStatus(`${selectedUpgrade.name} applied to ${square}!`, 'success');
+                            board.onSquareClick = originalHandler;  // Restore handler
+                            
+                            // Visual feedback
+                            board.highlightSquare(square, 'selected');
+                            setTimeout(() => {
+                                board.clearHighlights();
+                                proceedToNextEncounter();
+                            }, 1500);
+                        } else {
+                            ui.updateStatus('Failed to apply upgrade', 'error');
+                        }
+                    } else {
+                        ui.updateStatus(`Select a ${selectedUpgrade.targetPiece}`, 'warning');
+                    }
+                };
+            } else {
+                // ============================================
+                // Artifact - Apply immediately
+                // ============================================
+                game.applyUpgrade(selectedUpgrade.id);
+                ui.updateStatus(`${selectedUpgrade.name} acquired!`, 'success');
+                setTimeout(() => proceedToNextEncounter(), 1000);
+            }
+        });
+        
+    } else {
+        // ============================================
+        // DEFEAT - End run
+        // ============================================
+        console.log('[Roguelike] Defeat. Ending run...');
+        await endRoguelikeRun(false);
+    }
+}
+
+/**
+ * Proceed to next encounter or zone
+ */
+function proceedToNextEncounter() {
+    game.currentEncounter++;
+    
+    if (game.currentEncounter > game.encountersPerZone) {
+        // Zone complete - move to next zone
+        game.currentZone++;
+        game.currentEncounter = 1;
+        
+        if (game.currentZone > game.maxZones) {
+            // RUN COMPLETE - VICTORY!
+            console.log('[Roguelike] Run complete! Victory!');
+            endRoguelikeRun(true);
+            return;
+        }
+        
+        ui.updateStatus(`Zone ${game.currentZone} - ${game.currentZone === game.maxZones ? 'FINAL ZONE!' : 'New Zone'}`, 'highlight');
+    }
+    
+    // Update HUD before starting next encounter
+    ui.updateRoguelikeHUD({
+        zone: game.currentZone,
+        encounter: game.currentEncounter,
+        gold: game.gold,
+        pieceUpgrades: game.pieceUpgrades,
+        artifacts: game.artifacts
+    });
+    
+    // Start next encounter
+    setTimeout(() => startRoguelikeEncounter(), 1500);
+}
+
+/**
+ * End the roguelike run (save to database)
+ */
+async function endRoguelikeRun(victory) {
+    console.log(`[Roguelike] Ending run - Victory: ${victory}`);
+    
+    try {
+        const response = await fetch('/php/roguelike/end-run.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                runId: game.runId,
+                victory: victory,
+                finalZone: game.currentZone,
+                finalGold: game.gold,
+                upgrades: Object.keys(game.pieceUpgrades).length,
+                artifacts: game.artifacts.length
+            })
+        });
+        
+        const result = await response.json();
+        console.log('[Roguelike] Run saved:', result);
+        
+        // Hide HUD
+        ui.toggleRoguelikeHUD(false);
+        game.roguelikeMode = false;
+        
+        // Show final message
+        if (victory) {
+            ui.showGameOverModal({
+                winner: game.playerColor,
+                reason: `🎉 Victory! You completed all ${game.maxZones} zones! Score: ${result.data?.score || 0}`
+            });
+        } else {
+            ui.showGameOverModal({
+                winner: Utils.oppositeColor(game.playerColor),
+                reason: `Defeated in Zone ${game.currentZone}. Better luck next time!`
+            });
+        }
+        
+    } catch (error) {
+        console.error('[Roguelike] Error ending run:', error);
+        ui.updateStatus('Failed to save run results', 'error');
+    }
 }
