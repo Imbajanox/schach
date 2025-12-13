@@ -129,7 +129,8 @@ const GAME_STATES = {
 const GAME_MODES = {
     VS_AI: 'vs_ai',
     PVP_LOCAL: 'pvp_local',
-    PVP_ONLINE: 'pvp_online'
+    PVP_ONLINE: 'pvp_online',
+    ROGUELIKE: 'roguelike'
 };
 
 // AI difficulties
@@ -172,3 +173,85 @@ const CASTLING = {
     BLACK_KINGSIDE: { king: { from: 'e8', to: 'g8' }, rook: { from: 'h8', to: 'f8' } },
     BLACK_QUEENSIDE: { king: { from: 'e8', to: 'c8' }, rook: { from: 'a8', to: 'd8' } }
 };
+
+// ============================================
+// Roguelike Mode Constants
+// ============================================
+
+// Roguelike upgrade definitions
+const ROGUELIKE_UPGRADES = {
+    // PHASE 1: MVP Upgrade - Schildträger (Shield Bearer)
+    SCHILDTRAEGER: {
+        id: 'SCHILDTRAEGER',
+        name: 'Schildträger',
+        description: 'This pawn gains +1 HP and must be captured twice to be removed from the board',
+        type: 'piece_stat',
+        targetPiece: 'pawn',
+        icon: '🛡️',
+        rarity: 'common',
+        apply: (piece) => ({
+            hp: 2,
+            maxHp: 2,
+            abilities: ['shield']
+        }),
+        cost: 40  // For shop encounters (Phase 4)
+    },
+    
+    // PHASE 2: Additional Upgrades (placeholder for now)
+    REITERSTURM: {
+        id: 'REITERSTURM',
+        name: 'Reitersturm',
+        description: 'After capturing, this knight gains one bonus move (cannot capture again)',
+        type: 'ability',
+        targetPiece: 'knight',
+        icon: '⚡',
+        rarity: 'rare',
+        apply: (piece) => ({
+            abilities: ['bonusMoveAfterCapture']
+        }),
+        cost: 60
+    },
+    
+    ARTILLERIE: {
+        id: 'ARTILLERIE',
+        name: 'Artillerie',
+        description: 'This rook can attack diagonally, but only if the target is 3+ squares away',
+        type: 'ability',
+        targetPiece: 'rook',
+        icon: '🎯',
+        rarity: 'rare',
+        apply: (piece) => ({
+            abilities: ['longRangeDiagonal']
+        }),
+        cost: 70
+    },
+    
+    // Artifacts (global effects)
+    ZEITUMKEHR: {
+        id: 'ZEITUMKEHR',
+        name: 'Amulett der Zeitumkehr',
+        description: 'Allows you to undo one move per game',
+        type: 'artifact',
+        icon: '⏪',
+        rarity: 'uncommon',
+        apply: () => ({
+            undoCharges: 1
+        }),
+        cost: 50
+    }
+};
+
+// Helper function to get upgrade by ID
+function getUpgradeById(id) {
+    return ROGUELIKE_UPGRADES[id] || null;
+}
+
+// Helper function to get upgrades by type
+function getUpgradesByType(type) {
+    return Object.values(ROGUELIKE_UPGRADES).filter(u => u.type === type);
+}
+
+// Helper function to get upgrades by target piece
+function getUpgradesForPiece(pieceType) {
+    return Object.values(ROGUELIKE_UPGRADES).filter(u => u.targetPiece === pieceType);
+}

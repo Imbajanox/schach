@@ -33,6 +33,28 @@ class ChessGame {
         this.onGameOver = null;
         this.onCheck = null;
         this.onTurnChange = null;
+        
+        // ============================================
+        // NEW: Roguelike Mode Properties
+        // ============================================
+        this.roguelikeMode = false;
+        this.runId = null;
+        this.currentZone = 1;
+        this.currentEncounter = 1;
+        this.maxZones = 5;
+        this.encountersPerZone = 3;
+        this.gold = 0;
+        
+        // Parallel upgrade tracking layer
+        this.pieceUpgrades = {};  // { 'e2': { hp: 2, maxHp: 2, abilities: [] } }
+        this.artifacts = [];      // Array of active artifact objects
+        this.pendingBonusMove = null;  // For abilities like Reitersturm
+        
+        // NEW: Roguelike Callbacks
+        this.onEncounterVictory = null;   // Triggered when player wins encounter
+        this.onRunComplete = null;         // Triggered when run finishes (win/loss)
+        this.onUpgradeApplied = null;      // Triggered when upgrade is applied
+        this.onGoldChanged = null;         // Triggered when gold amount changes
     }
 
     /**
