@@ -1559,7 +1559,7 @@ async function initializeRoguelikeRun() {
 function startRoguelikeEncounter() {
     console.log(`[Roguelike] Starting Zone ${game.currentZone}, Encounter ${game.currentEncounter}`);
     
-    // Ensure game mode is set correctly
+    // Defensive: Ensure game mode stays set (in case of future code changes)
     currentGameMode = GAME_MODES.ROGUELIKE;
     
     // Show HUD

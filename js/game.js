@@ -81,9 +81,10 @@ class ChessGame {
         this.drawOffered = false;
         this.drawOfferedBy = null;
         
-        // IMPORTANT: Do NOT reset roguelike properties when in roguelike mode
-        // These should persist across encounters: pieceUpgrades, artifacts, gold, etc.
-        // Only reset these when roguelikeMode is explicitly set to false
+        // IMPORTANT: Preserve roguelike properties when continuing a run
+        // pieceUpgrades and artifacts must persist across encounters
+        // Other roguelike properties (gold, runId, currentZone, currentEncounter) 
+        // are managed in main.js and not affected by this method
         if (!this.roguelikeMode) {
             this.pieceUpgrades = {};
             this.artifacts = [];
