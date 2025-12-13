@@ -382,6 +382,49 @@
         </div>
     </div>
 
+    <!-- Roguelike Dashboard Modal -->
+    <div class="modal" id="roguelikeDashboard">
+        <div class="modal-content roguelike-dashboard-content">
+            <button class="modal-close" id="roguelikeDashboardClose">&times;</button>
+            <h2>⚔️ Roguelike Mode</h2>
+            <p class="dashboard-subtitle">Embark on a chess adventure through 5 zones</p>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-label">Total Runs</div>
+                    <div class="stat-value" id="dashboardTotalRuns">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👑</div>
+                    <div class="stat-label">Victories</div>
+                    <div class="stat-value" id="dashboardVictories">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📍</div>
+                    <div class="stat-label">Highest Zone</div>
+                    <div class="stat-value" id="dashboardHighestZone">0</div>
+                </div>
+            </div>
+            
+            <div class="dashboard-info">
+                <h3>How to Play:</h3>
+                <ul>
+                    <li>🎯 Progress through 5 zones with 3 encounters each</li>
+                    <li>⚡ Win battles to earn upgrades that enhance your pieces</li>
+                    <li>💰 Collect gold to unlock powerful abilities</li>
+                    <li>💀 One loss ends your run - make every move count!</li>
+                </ul>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-primary btn-large" id="startRunBtn">
+                    🎮 Start New Run
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Roguelike Upgrade Selection Modal -->
     <div class="modal" id="upgradeModal">
         <div class="modal-content upgrade-modal-content">
@@ -391,6 +434,35 @@
                 <!-- Dynamically populated with upgrade cards -->
             </div>
             <p class="upgrade-hint">💡 Tip: Upgrades stack! Multiple pawns can have Schildträger.</p>
+        </div>
+    </div>
+
+    <!-- Roguelike Game Over Modal -->
+    <div class="modal" id="roguelikeGameOverModal">
+        <div class="modal-content roguelike-gameover-content">
+            <h2 id="roguelikeGameOverTitle">Run Complete</h2>
+            <div class="roguelike-result-icon" id="roguelikeResultIcon">🎉</div>
+            <p id="roguelikeGameOverMessage"></p>
+            
+            <div class="roguelike-stats-summary">
+                <div class="summary-item">
+                    <span class="summary-label">Zone Reached:</span>
+                    <span class="summary-value" id="summaryZone">1</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Gold Earned:</span>
+                    <span class="summary-value" id="summaryGold">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Score:</span>
+                    <span class="summary-value" id="summaryScore">0</span>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="roguelikeNewRunBtn">🎮 New Run</button>
+                <button class="btn btn-outline" id="roguelikeDashboardBtn">📊 Dashboard</button>
+            </div>
         </div>
     </div>
 

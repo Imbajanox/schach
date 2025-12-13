@@ -95,6 +95,12 @@ function setupEventListeners() {
         ui.hideGameOverModal();
         openGameReview();
     });
+    
+    // Roguelike dashboard close button
+    const dashboardClose = document.getElementById('roguelikeDashboardClose');
+    dashboardClose?.addEventListener('click', () => {
+        ui.hideRoguelikeDashboard();
+    });
 }
 
 /**
@@ -163,11 +169,15 @@ async function startNewGame() {
     // Clear AI cache for new game
     chessAI.clearCache();
     
-    // Reset game API
-    gameAPI.reset();
+    // Reset game API (only for non-roguelike modes)
+    if (currentGameMode !== GAME_MODES.ROGUELIKE) {
+        gameAPI.reset();
+    }
     
-    // Update opponent info based on difficulty
-    updateOpponentDisplay(difficulty);
+    // Update opponent display based on difficulty (skip for roguelike)
+    if (currentGameMode !== GAME_MODES.ROGUELIKE) {
+        updateOpponentDisplay(difficulty);
+    }
 
     // Determine game type for API
     let gameType = 'pvp_local';
@@ -175,21 +185,26 @@ async function startNewGame() {
         gameType = 'vs_ai';
     } else if (currentGameMode === GAME_MODES.PVP_ONLINE) {
         gameType = 'pvp_online';
+    } else if (currentGameMode === GAME_MODES.ROGUELIKE) {
+        gameType = 'roguelike';
     }
 
     // Default time control is 10 minutes (600 seconds)
     const defaultTimeControl = 600;
     
-    // Create game on server
-    const createResult = await gameAPI.createGame({
-        mode: gameType,
-        playerColor: playerColor,
-        difficulty: difficulty,
-        timeControl: defaultTimeControl
-    });
-    
-    if (!createResult.success) {
-        console.warn('Failed to create game on server:', createResult.error);
+    // Create game on server (skip for roguelike)
+    let createResult = { success: false };
+    if (currentGameMode !== GAME_MODES.ROGUELIKE) {
+        createResult = await gameAPI.createGame({
+            mode: gameType,
+            playerColor: playerColor,
+            difficulty: difficulty,
+            timeControl: defaultTimeControl
+        });
+        
+        if (!createResult.success) {
+            console.warn('Failed to create game on server:', createResult.error);
+        }
     }
 
     // Start the game locally
@@ -210,15 +225,17 @@ async function startNewGame() {
     ui.updateTurnIndicator(COLORS.WHITE);
     ui.setGameControlsEnabled(true);
     
-    // Reset and start the timer (White moves first)
-    // Use server-returned time if available, otherwise use default
-    const initialTime = createResult.time_control || defaultTimeControl;
-    chessTimer.reset(initialTime);
-    chessTimer.start(COLORS.WHITE);
+    // Reset and start the timer for non-roguelike modes
+    if (currentGameMode !== GAME_MODES.ROGUELIKE) {
+        // Use server-returned time if available, otherwise use default
+        const initialTime = createResult.time_control || defaultTimeControl;
+        chessTimer.reset(initialTime);
+        chessTimer.start(COLORS.WHITE);
+    }
 
     selectedSquare = null;
 
-    // If playing as black vs AI, make AI move
+    // If playing as black vs AI, make AI move (not in roguelike mode as it's always white)
     if (currentGameMode === GAME_MODES.VS_AI && playerColor === COLORS.BLACK) {
         setTimeout(makeAIMove, 500);
     }
@@ -1449,13 +1466,56 @@ function updateUIForGuest() {
 // ============================================
 
 /**
- * Start a new roguelike run
+ * Start roguelike mode - show dashboard first
  */
-async function startRoguelikeRun() {    
-    console.log('[Roguelike] Starting new run...');
+async function startRoguelikeRun() {
+    // Check authentication
+    if (!isAuthenticated) {
+        auth.showModal('login');
+        ui.updateStatus('Please login to play Roguelike mode', 'warning');
+        return;
+    }
+    
+    console.log('[Roguelike] Opening dashboard...');
     
     try {
-        const response = await fetch('php/roguelike/start-run.php', {
+        // Fetch player stats for dashboard
+        const response = await fetch('/php/roguelike/get-stats.php', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        let stats = { totalRuns: 0, victories: 0, highestZone: 0 };
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                stats = {
+                    totalRuns: result.data.total_runs || 0,
+                    victories: result.data.total_victories || 0,
+                    highestZone: result.data.highest_zone_reached || 0
+                };
+            }
+        }
+        
+        // Show dashboard with start callback
+        ui.showRoguelikeDashboard(stats, initializeRoguelikeRun);
+        
+    } catch (error) {
+        console.error('[Roguelike] Error loading stats:', error);
+        // Show dashboard anyway with default stats
+        ui.showRoguelikeDashboard({ totalRuns: 0, victories: 0, highestZone: 0 }, initializeRoguelikeRun);
+    }
+}
+
+/**
+ * Initialize a new roguelike run after dashboard
+ */
+async function initializeRoguelikeRun() {
+    console.log('[Roguelike] Initializing new run...');
+    
+    try {
+        // Call backend to create run
+        const response = await fetch('/php/roguelike/start-run.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -1483,7 +1543,8 @@ async function startRoguelikeRun() {
         // Setup callbacks
         game.onGameOver = handleRoguelikeGameOver;
         
-        // Start first encounter
+        // Set game mode and start first encounter
+        currentGameMode = GAME_MODES.ROGUELIKE;
         startRoguelikeEncounter();
         
     } catch (error) {
@@ -1508,17 +1569,10 @@ function startRoguelikeEncounter() {
         artifacts: game.artifacts
     });
     
-    // Start chess game with current upgrades intact
-    const position = game.newGame({
-        mode: GAME_MODES.ROGUELIKE,
-        playerColor: COLORS.WHITE,
-        difficulty: AI_DIFFICULTIES.EASY  // TODO: Map to enemy type in Phase 3
-    });
+    // Use the standard startNewGame() method with roguelike mode set
+    startNewGame();
     
-    board.renderPosition(position);
     ui.updateStatus(`Zone ${game.currentZone} - Encounter ${game.currentEncounter}`, 'info');
-    
-    // AI will automatically play as black after player moves (handled by handleMove)
 }
 
 /**
@@ -1658,7 +1712,7 @@ async function endRoguelikeRun(victory) {
     console.log(`[Roguelike] Ending run - Victory: ${victory}`);
     
     try {
-        const response = await fetch('php/roguelike/end-run.php', {
+        const response = await fetch('/php/roguelike/end-run.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1676,20 +1730,32 @@ async function endRoguelikeRun(victory) {
         
         // Hide HUD
         ui.toggleRoguelikeHUD(false);
-        game.roguelikeMode = false;
         
-        // Show final message
-        if (victory) {
-            ui.showGameOverModal({
-                winner: game.playerColor,
-                reason: `🎉 Victory! You completed all ${game.maxZones} zones! Score: ${result.data?.score || 0}`
-            });
-        } else {
-            ui.showGameOverModal({
-                winner: Utils.oppositeColor(game.playerColor),
-                reason: `Defeated in Zone ${game.currentZone}. Better luck next time!`
-            });
-        }
+        // Prepare result data for modal
+        const gameOverData = {
+            victory: victory,
+            zone: game.currentZone,
+            gold: game.gold,
+            score: result.data?.score || 0,
+            message: victory 
+                ? `🎉 You completed all ${game.maxZones} zones!` 
+                : `You were defeated in Zone ${game.currentZone}.`
+        };
+        
+        // Show roguelike-specific game over modal
+        ui.showRoguelikeGameOver(
+            gameOverData,
+            () => {
+                // New run callback
+                game.roguelikeMode = false;
+                startRoguelikeRun();
+            },
+            () => {
+                // Dashboard callback
+                game.roguelikeMode = false;
+                startRoguelikeRun();
+            }
+        );
         
     } catch (error) {
         console.error('[Roguelike] Error ending run:', error);

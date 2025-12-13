@@ -480,4 +480,100 @@ class UI {
         const hud = document.getElementById('roguelikeHUD');
         hud.style.display = show ? 'block' : 'none';
     }
+
+    /**
+     * Show roguelike dashboard modal
+     * @param {Object} stats - Player stats { totalRuns, victories, highestZone }
+     * @param {Function} onStart - Callback when start button is clicked
+     */
+    showRoguelikeDashboard(stats, onStart) {
+        const modal = document.getElementById('roguelikeDashboard');
+        
+        // Update stats
+        document.getElementById('dashboardTotalRuns').textContent = stats.totalRuns || 0;
+        document.getElementById('dashboardVictories').textContent = stats.victories || 0;
+        document.getElementById('dashboardHighestZone').textContent = stats.highestZone || 0;
+        
+        // Setup start button
+        const startBtn = document.getElementById('startRunBtn');
+        const newHandler = () => {
+            this.hideRoguelikeDashboard();
+            onStart();
+        };
+        
+        // Remove old listeners by cloning
+        const newStartBtn = startBtn.cloneNode(true);
+        startBtn.parentNode.replaceChild(newStartBtn, startBtn);
+        newStartBtn.addEventListener('click', newHandler);
+        
+        modal.classList.add('active');
+    }
+
+    /**
+     * Hide roguelike dashboard modal
+     */
+    hideRoguelikeDashboard() {
+        const modal = document.getElementById('roguelikeDashboard');
+        modal.classList.remove('active');
+    }
+
+    /**
+     * Show roguelike game over modal
+     * @param {Object} result - { victory, zone, gold, score, message }
+     * @param {Function} onNewRun - Callback for new run button
+     * @param {Function} onDashboard - Callback for dashboard button
+     */
+    showRoguelikeGameOver(result, onNewRun, onDashboard) {
+        const modal = document.getElementById('roguelikeGameOverModal');
+        
+        // Update title and icon
+        const title = document.getElementById('roguelikeGameOverTitle');
+        const icon = document.getElementById('roguelikeResultIcon');
+        const message = document.getElementById('roguelikeGameOverMessage');
+        
+        if (result.victory) {
+            title.textContent = '🎉 Victory!';
+            icon.textContent = '👑';
+            message.textContent = result.message || 'You have conquered all zones!';
+        } else {
+            title.textContent = '💀 Defeated';
+            icon.textContent = '⚔️';
+            message.textContent = result.message || 'Your run has ended. Try again!';
+        }
+        
+        // Update stats
+        document.getElementById('summaryZone').textContent = result.zone || 1;
+        document.getElementById('summaryGold').textContent = result.gold || 0;
+        document.getElementById('summaryScore').textContent = result.score || 0;
+        
+        // Setup buttons
+        const newRunBtn = document.getElementById('roguelikeNewRunBtn');
+        const dashboardBtn = document.getElementById('roguelikeDashboardBtn');
+        
+        // Remove old listeners by cloning
+        const newNewRunBtn = newRunBtn.cloneNode(true);
+        const newDashboardBtn = dashboardBtn.cloneNode(true);
+        newRunBtn.parentNode.replaceChild(newNewRunBtn, newRunBtn);
+        dashboardBtn.parentNode.replaceChild(newDashboardBtn, dashboardBtn);
+        
+        newNewRunBtn.addEventListener('click', () => {
+            this.hideRoguelikeGameOver();
+            onNewRun();
+        });
+        
+        newDashboardBtn.addEventListener('click', () => {
+            this.hideRoguelikeGameOver();
+            onDashboard();
+        });
+        
+        modal.classList.add('active');
+    }
+
+    /**
+     * Hide roguelike game over modal
+     */
+    hideRoguelikeGameOver() {
+        const modal = document.getElementById('roguelikeGameOverModal');
+        modal.classList.remove('active');
+    }
 }
