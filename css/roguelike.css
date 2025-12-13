@@ -1,0 +1,273 @@
+/* ============================================
+   Roguelike Chess Mode Styling
+   ============================================ */
+
+/* ============================================
+   Roguelike HUD Styling
+   ============================================ */
+
+.roguelike-hud {
+    position: fixed;
+    right: 20px;
+    top: 80px;
+    width: 280px;
+    background: linear-gradient(135deg, rgba(20, 20, 30, 0.98) 0%, rgba(30, 30, 45, 0.98) 100%);
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    color: white;
+    z-index: 100;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.hud-section {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hud-section:last-child {
+    border-bottom: none;
+}
+
+.hud-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #a0a0ff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Progress Section */
+.progress-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.progress-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.progress-item .label {
+    color: #aaa;
+}
+
+.progress-item .value {
+    color: #fff;
+    font-weight: 600;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.5s ease;
+    border-radius: 4px;
+}
+
+/* Gold Section */
+.gold-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.gold-amount {
+    font-size: 32px;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+}
+
+/* Upgrade List */
+.upgrade-list, .artifact-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 40px;
+}
+
+.empty-state {
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+    margin: 0;
+}
+
+.upgrade-badge, .artifact-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(102, 126, 234, 0.2);
+    border: 1px solid rgba(102, 126, 234, 0.4);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: help;
+    transition: all 0.2s;
+}
+
+.upgrade-badge:hover, .artifact-badge:hover {
+    background: rgba(102, 126, 234, 0.4);
+    border-color: rgba(102, 126, 234, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.artifact-badge {
+    background: rgba(245, 87, 108, 0.2);
+    border-color: rgba(245, 87, 108, 0.4);
+}
+
+.artifact-badge:hover {
+    background: rgba(245, 87, 108, 0.4);
+    border-color: rgba(245, 87, 108, 0.6);
+    box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
+/* ============================================
+   Upgrade Selection Modal
+   ============================================ */
+
+#upgradeModal .modal-content {
+    max-width: 900px;
+    padding: 40px;
+    background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+}
+
+#upgradeModal h2 {
+    text-align: center;
+    color: #fff;
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.upgrade-subtitle {
+    text-align: center;
+    color: #999;
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+.upgrade-hint {
+    text-align: center;
+    color: #ffd700;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.upgrade-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.upgrade-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: white;
+    text-align: center;
+    border: 3px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.upgrade-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.upgrade-card:hover::before {
+    opacity: 1;
+}
+
+.upgrade-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+    border-color: #fff;
+}
+
+.upgrade-card.artifact {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.upgrade-card.artifact:hover {
+    box-shadow: 0 15px 40px rgba(245, 87, 108, 0.5);
+}
+
+.upgrade-card.common {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.upgrade-card.rare {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.upgrade-icon {
+    font-size: 56px;
+    margin-bottom: 12px;
+    display: block;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.upgrade-card h4 {
+    margin: 12px 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.upgrade-card p {
+    font-size: 14px;
+    opacity: 0.95;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.upgrade-rarity {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+    .roguelike-hud {
+        right: 10px;
+        width: 240px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .roguelike-hud {
+        display: none !important;  /* Hide HUD on smaller screens */
+    }
+}

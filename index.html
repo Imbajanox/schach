@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/board.css">
     <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/roguelike.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -375,6 +376,59 @@
             </form>
         </div>
     </div>
+
+    <!-- Roguelike Upgrade Selection Modal -->
+    <div class="modal" id="upgradeModal">
+        <div class="modal-content upgrade-modal-content">
+            <h2>⚔️ Choose Your Reward</h2>
+            <p class="upgrade-subtitle">Select one upgrade to enhance your chess pieces</p>
+            <div class="upgrade-options" id="upgradeOptions">
+                <!-- Dynamically populated with upgrade cards -->
+            </div>
+            <p class="upgrade-hint">💡 Tip: Upgrades stack! Multiple pawns can have Schildträger.</p>
+        </div>
+    </div>
+
+    <!-- Roguelike HUD (initially hidden) -->
+    <aside class="roguelike-hud" id="roguelikeHUD" style="display: none;">
+        <div class="hud-section run-progress">
+            <h3>📍 Progress</h3>
+            <div class="progress-info">
+                <div class="progress-item">
+                    <span class="label">Zone:</span>
+                    <span class="value"><strong id="currentZone">1</strong> / 5</span>
+                </div>
+                <div class="progress-item">
+                    <span class="label">Battle:</span>
+                    <span class="value"><strong id="currentEncounter">1</strong> / 3</span>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="runProgressBar" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="hud-section resources">
+            <h3>💰 Gold</h3>
+            <div class="gold-display">
+                <span class="gold-amount" id="goldAmount">0</span>
+            </div>
+        </div>
+        
+        <div class="hud-section active-upgrades">
+            <h3>⬆️ Active Upgrades</h3>
+            <div class="upgrade-list" id="activeUpgradeList">
+                <p class="empty-state">No upgrades yet</p>
+            </div>
+        </div>
+        
+        <div class="hud-section artifacts">
+            <h3>✨ Artifacts</h3>
+            <div class="artifact-list" id="artifactList">
+                <p class="empty-state">No artifacts yet</p>
+            </div>
+        </div>
+    </aside>
 
     <!-- Scripts -->
     <script src="js/constants.js"></script>
