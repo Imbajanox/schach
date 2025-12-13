@@ -9,6 +9,18 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/auth.php';
 
+// --- CORS Headers (Crucial for the Preflight Request) ---
+header("Access-Control-Allow-Origin: *"); // Or specify your dev environment origin (e.g., http://localhost:8080)
+header("Access-Control-Allow-Methods: POST, OPTIONS"); // Allow POST and OPTIONS
+header("Access-Control-Allow-Headers: Content-Type"); // Allow the custom header we send
+
+// --- Handle Preflight OPTIONS Request ---
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Respond to the preflight without running the main POST logic
+    http_response_code(200);
+    exit;
+}
+
 // Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -69,16 +81,18 @@ try {
     $score += ($upgradesCount * 10) + ($artifactsCount * 20);
     
     // Update run record
-    db()->update('roguelike_runs', [
-        'is_active' => 0,
-        'completed_at' => date('Y-m-d H:i:s'),
-        'victory' => $victory ? 1 : 0,
-        'final_score' => $score,
-        'current_zone' => $finalZone,
-        'gold' => $finalGold
-    ], [
-        'id' => $runId
-    ]);
+    $completedAt = date('Y-m-d H:i:s');
+    db()->update(
+        "UPDATE roguelike_runs 
+         SET is_active = 0, 
+             completed_at = ?, 
+             victory = ?, 
+             final_score = ?, 
+             current_zone = ?, 
+             gold = ? 
+         WHERE id = ?",
+        [$completedAt, $victory ? 1 : 0, $score, $finalZone, $finalGold, $runId]
+    );
     
     // Update meta progression
     $metaQuery = "UPDATE roguelike_meta_progression 

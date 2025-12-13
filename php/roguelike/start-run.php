@@ -9,6 +9,18 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/auth.php';
 
+// --- CORS Headers (Crucial for the Preflight Request) ---
+header("Access-Control-Allow-Origin: *"); // Or specify your dev environment origin (e.g., http://localhost:8080)
+header("Access-Control-Allow-Methods: POST, OPTIONS"); // Allow POST and OPTIONS
+header("Access-Control-Allow-Headers: Content-Type"); // Allow the custom header we send
+
+// --- Handle Preflight OPTIONS Request ---
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Respond to the preflight without running the main POST logic
+    http_response_code(200);
+    exit;
+}
+
 // Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -50,17 +62,16 @@ try {
     }
     
     // Start a new run
-    $runId = db()->insert('roguelike_runs', [
-        'user_id' => $userId,
-        'current_zone' => 1,
-        'current_encounter' => 1,
-        'gold' => 0,
-        'is_active' => 1,
-        'run_data' => json_encode([
-            'startTime' => time(),
-            'version' => '1.0'
-        ])
+    $runData = json_encode([
+        'startTime' => time(),
+        'version' => '1.0'
     ]);
+    
+    $runId = db()->insert(
+        "INSERT INTO roguelike_runs (user_id, current_zone, current_encounter, gold, is_active, run_data) 
+         VALUES (?, ?, ?, ?, ?, ?)",
+        [$userId, 1, 1, 0, 1, $runData]
+    );
     
     if (!$runId) {
         throw new Exception('Failed to create roguelike run');
@@ -73,17 +84,16 @@ try {
     );
     
     if ($metaExists) {
-        db()->update('roguelike_meta_progression', 
-            ['total_runs' => db()->raw('total_runs + 1')],
-            ['user_id' => $userId]
+        db()->update(
+            "UPDATE roguelike_meta_progression SET total_runs = total_runs + 1 WHERE user_id = ?",
+            [$userId]
         );
     } else {
-        db()->insert('roguelike_meta_progression', [
-            'user_id' => $userId,
-            'total_runs' => 1,
-            'total_victories' => 0,
-            'highest_zone_reached' => 0
-        ]);
+        db()->insert(
+            "INSERT INTO roguelike_meta_progression (user_id, total_runs, total_victories, highest_zone_reached) 
+             VALUES (?, ?, ?, ?)",
+            [$userId, 1, 0, 0]
+        );
     }
     
     echo json_encode([

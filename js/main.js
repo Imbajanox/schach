@@ -381,8 +381,8 @@ function handleMove(move) {
         console.warn('Failed to save move to server:', err);
     });
 
-    // If vs AI and now AI's turn, make AI move
-    if (currentGameMode === GAME_MODES.VS_AI && !game.isPlayerTurn()) {
+    // If vs AI or Roguelike and now AI's turn, make AI move
+    if ((currentGameMode === GAME_MODES.VS_AI || currentGameMode === GAME_MODES.ROGUELIKE) && !game.isPlayerTurn()) {
         setTimeout(makeAIMove, 500);
     }
 }
@@ -1451,19 +1451,11 @@ function updateUIForGuest() {
 /**
  * Start a new roguelike run
  */
-async function startRoguelikeRun() {
-    // Check authentication
-    if (!isAuthenticated) {
-        auth.showModal('login');
-        ui.updateStatus('Please login to play Roguelike mode', 'warning');
-        return;
-    }
-    
+async function startRoguelikeRun() {    
     console.log('[Roguelike] Starting new run...');
     
     try {
-        // Call backend to create run
-        const response = await fetch('/php/roguelike/start-run.php', {
+        const response = await fetch('php/roguelike/start-run.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -1526,8 +1518,7 @@ function startRoguelikeEncounter() {
     board.renderPosition(position);
     ui.updateStatus(`Zone ${game.currentZone} - Encounter ${game.currentEncounter}`, 'info');
     
-    // Setup AI to play as black
-    setupAIOpponent();
+    // AI will automatically play as black after player moves (handled by handleMove)
 }
 
 /**
@@ -1667,7 +1658,7 @@ async function endRoguelikeRun(victory) {
     console.log(`[Roguelike] Ending run - Victory: ${victory}`);
     
     try {
-        const response = await fetch('/php/roguelike/end-run.php', {
+        const response = await fetch('php/roguelike/end-run.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
