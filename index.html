@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/board.css">
     <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/roguelike.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -79,6 +80,11 @@
                         <button class="option-btn" id="vsPlayerOnlineBtn">
                             <span class="option-icon">🌐</span>
                             <span class="option-text">Online</span>
+                        </button>
+                        <button class="option-btn roguelike-btn" id="roguelikeBtn">
+                            <span class="option-icon">⚔️</span>
+                            <span class="option-text">Roguelike</span>
+                            <span class="beta-badge">BETA</span>
                         </button>
                     </div>
                 </div>
@@ -375,6 +381,131 @@
             </form>
         </div>
     </div>
+
+    <!-- Roguelike Dashboard Modal -->
+    <div class="modal" id="roguelikeDashboard">
+        <div class="modal-content roguelike-dashboard-content">
+            <button class="modal-close" id="roguelikeDashboardClose">&times;</button>
+            <h2>⚔️ Roguelike Mode</h2>
+            <p class="dashboard-subtitle">Embark on a chess adventure through 5 zones</p>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-label">Total Runs</div>
+                    <div class="stat-value" id="dashboardTotalRuns">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👑</div>
+                    <div class="stat-label">Victories</div>
+                    <div class="stat-value" id="dashboardVictories">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📍</div>
+                    <div class="stat-label">Highest Zone</div>
+                    <div class="stat-value" id="dashboardHighestZone">0</div>
+                </div>
+            </div>
+            
+            <div class="dashboard-info">
+                <h3>How to Play:</h3>
+                <ul>
+                    <li>🎯 Progress through 5 zones with 3 encounters each</li>
+                    <li>⚡ Win battles to earn upgrades that enhance your pieces</li>
+                    <li>💰 Collect gold to unlock powerful abilities</li>
+                    <li>💀 One loss ends your run - make every move count!</li>
+                </ul>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-primary btn-large" id="startRunBtn">
+                    🎮 Start New Run
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Roguelike Upgrade Selection Modal -->
+    <div class="modal" id="upgradeModal">
+        <div class="modal-content upgrade-modal-content">
+            <h2>⚔️ Choose Your Reward</h2>
+            <p class="upgrade-subtitle">Select one upgrade to enhance your chess pieces</p>
+            <div class="upgrade-options" id="upgradeOptions">
+                <!-- Dynamically populated with upgrade cards -->
+            </div>
+            <p class="upgrade-hint">💡 Tip: Upgrades stack! Multiple pawns can have Schildträger.</p>
+        </div>
+    </div>
+
+    <!-- Roguelike Game Over Modal -->
+    <div class="modal" id="roguelikeGameOverModal">
+        <div class="modal-content roguelike-gameover-content">
+            <h2 id="roguelikeGameOverTitle">Run Complete</h2>
+            <div class="roguelike-result-icon" id="roguelikeResultIcon">🎉</div>
+            <p id="roguelikeGameOverMessage"></p>
+            
+            <div class="roguelike-stats-summary">
+                <div class="summary-item">
+                    <span class="summary-label">Zone Reached:</span>
+                    <span class="summary-value" id="summaryZone">1</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Gold Earned:</span>
+                    <span class="summary-value" id="summaryGold">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Score:</span>
+                    <span class="summary-value" id="summaryScore">0</span>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="roguelikeNewRunBtn">🎮 New Run</button>
+                <button class="btn btn-outline" id="roguelikeDashboardBtn">📊 Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Roguelike HUD (initially hidden) -->
+    <aside class="roguelike-hud" id="roguelikeHUD" style="display: none;">
+        <div class="hud-section run-progress">
+            <h3>📍 Progress</h3>
+            <div class="progress-info">
+                <div class="progress-item">
+                    <span class="label">Zone:</span>
+                    <span class="value"><strong id="currentZone">1</strong> / 5</span>
+                </div>
+                <div class="progress-item">
+                    <span class="label">Battle:</span>
+                    <span class="value"><strong id="currentEncounter">1</strong> / 3</span>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="runProgressBar" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="hud-section resources">
+            <h3>💰 Gold</h3>
+            <div class="gold-display">
+                <span class="gold-amount" id="goldAmount">0</span>
+            </div>
+        </div>
+        
+        <div class="hud-section active-upgrades">
+            <h3>⬆️ Active Upgrades</h3>
+            <div class="upgrade-list" id="activeUpgradeList">
+                <p class="empty-state">No upgrades yet</p>
+            </div>
+        </div>
+        
+        <div class="hud-section artifacts">
+            <h3>✨ Artifacts</h3>
+            <div class="artifact-list" id="artifactList">
+                <p class="empty-state">No artifacts yet</p>
+            </div>
+        </div>
+    </aside>
 
     <!-- Scripts -->
     <script src="js/constants.js"></script>

@@ -291,6 +291,13 @@ class Auth {
         
         return $user;
     }
+
+    public function getUserId(): ?int {
+        if ($this->isLoggedIn()) {
+            return $_SESSION['user_id'];
+        }
+        return null;
+    }
     
     /**
      * Logout user

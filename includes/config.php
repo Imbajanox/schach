@@ -11,7 +11,7 @@ define('DB_USER', 'root');
 define('DB_PASS', ''); // Default WAMP password is empty
 
 // Site configuration
-define('SITE_URL', 'http://localhost/schach');
+define('SITE_URL', 'http://localhost/schach-rouge-like');
 define('SITE_NAME', 'Schach - Chess Game');
 
 // Session configuration
